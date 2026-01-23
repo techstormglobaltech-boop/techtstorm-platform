@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStorm Global | Mentorship & Growth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- BRAND COLORS EXTRACTED FROM LOGO --- */
+        :root {
+            --brand-teal: #007C85;  /* From "Tech" and Icon */
+            --brand-amber: #FFB300; /* From "Storm" and Icon */
+            --brand-dark: #1e293b;
+            --text-gray: #64748b;
+            --light-bg: #f8fafc;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { color: var(--brand-dark); line-height: 1.6; overflow-x: hidden; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
+
+        /* --- UTILITIES --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .section-padding { padding: 80px 0; }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        /* Using the Amber color for primary CTA to pop against the Teal */
+        .btn-primary {
+            background: var(--brand-amber);
+            color: var(--brand-dark);
+        }
+        .btn-primary:hover {
+            background: #e6a200;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            border-color: var(--brand-teal);
+            color: var(--brand-teal);
+        }
+        .btn-outline:hover {
+            background: var(--brand-teal);
+            color: var(--white);
+        }
+
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-header h2 { font-size: 2.5rem; color: var(--brand-teal); margin-bottom: 10px; }
+        .section-header p { color: var(--text-gray); max-width: 600px; margin: 0 auto; }
+
+        /* --- NAVBAR --- */
+        header {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        /* Logo Styling */
+        .logo-container { height: 50px; display: flex; align-items: center; }
+        .logo-img { height: 100%; width: auto; } 
+        
+        /* Fallback text logo if image fails */
+        .logo-text { font-size: 1.8rem; font-weight: 800; }
+        .text-tech { color: var(--brand-teal); }
+        .text-storm { color: var(--brand-amber); }
+
+        .nav-menu { display: flex; align-items: center; gap: 30px; }
+        .nav-item { position: relative; font-weight: 500; color: var(--brand-dark); transition: var(--transition); }
+        .nav-item:hover { color: var(--brand-teal); }
+
+        /* DROPDOWN STYLES */
+        .dropdown { position: relative; cursor: pointer; }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            width: 180px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: var(--transition);
+            padding: 10px 0;
+            border-top: 3px solid var(--brand-amber);
+        }
+
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            color: var(--text-gray);
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: var(--light-bg);
+            color: var(--brand-teal);
+            padding-left: 25px; /* Slight nudge effect */
+        }
+
+        /* Mobile Menu */
+        .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--brand-teal); }
+
+        /* --- HERO --- */
+        .hero {
+            padding-top: 160px;
+            padding-bottom: 100px;
+            background: linear-gradient(135deg, #f0fdff 0%, #fffbeb 100%); /* Subtle mix of teal/amber tints */
+        }
+        .hero h1 { font-size: 3.5rem; line-height: 1.2; color: var(--brand-dark); margin-bottom: 20px; }
+        .hero span { color: var(--brand-teal); }
+        
+        /* --- SERVICES (Cards) --- */
+        .service-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border-bottom: 4px solid var(--brand-teal);
+            transition: var(--transition);
+        }
+        .service-card:hover { transform: translateY(-10px); border-bottom-color: var(--brand-amber); }
+        .icon-box {
+            font-size: 2rem;
+            color: var(--brand-amber);
+            margin-bottom: 20px;
+        }
+
+        /* --- CONTACT --- */
+        .contact-box {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+        input:focus, textarea:focus { border-color: var(--brand-teal); }
+
+        /* --- FOOTER --- */
+        footer { background: #0f172a; color: #cbd5e1; padding: 60px 0 20px; }
+        .footer-logo span:first-child { color: var(--brand-teal); }
+        .footer-logo span:last-child { color: var(--brand-amber); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 968px) {
+            .mobile-toggle { display: block; }
+            .nav-menu {
+                position: fixed; top: 80px; left: -100%; width: 100%; height: calc(100vh - 80px);
+                background: var(--white); flex-direction: column; align-items: flex-start;
+                padding: 40px; transition: 0.4s; overflow-y: auto;
+            }
+            .nav-menu.active { left: 0; }
+            .dropdown-menu { position: static; opacity: 1; visibility: visible; box-shadow: none; padding-left: 20px; transform: none; display: none; width: 100%; border-top: none; }
+            .dropdown.active .dropdown-menu { display: block; }
+            .dropdown::after { content: ' ▼'; font-size: 0.7rem; }
+        }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        @media (max-width: 968px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo-container">
+                    <img src="Asset 1.png" alt="TechStorm Global" class="logo-img" onerror="this.style.display='none'; document.querySelector('.logo-text').style.display='block';">
+                    <div class="logo-text" style="display:none;">
+                        <span class="text-tech">Tech</span><span class="text-storm">Storm</span>
+                    </div>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="#" class="nav-item">Home</a></li>
+                    <li><a href="about.html" class="nav-item">About</a></li>
+                    <li><a href="services.html" class="nav-item">Services</a></li>
+                    <li><a href="gallery.html" class="nav-item">Gallery</a></li>
+                    
+                    <li class="nav-item dropdown" onclick="toggleMobileDropdown(this)">
+                        More <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i>
+                        <ul class="dropdown-menu">
+                            <li><a href="team.html" class="dropdown-item">Team</a></li>
+                            <li><a href="testimonials.html" class="dropdown-item">Testimonials</a></li>
+                            <li><a href="events.html" class="dropdown-item">Events</a></li>
+                            <li><a href="admin.html" class="dropdown-item" style="color: var(--brand-teal);"><strong>Admin Portal</strong></a></li>
+                        </ul>
+                    </li>
+
+                    <li><a href="contact.html" class="btn btn-primary" style="color: #000;">Contact Us</a></li>
+                </ul>
+
+                <div class="mobile-toggle" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container grid-2">
+            <div>
+                <h1>Building the Future Together Through <span style="color: var(--brand-teal);">Tech Mentorship</span></h1>
+                <p style="margin: 20px 0; color: var(--text-gray); font-size: 1.1rem;">
+                    Join TechStorm to connect with experts in AI, Data Science, and Programming. Empowering you to learn, grow, and lead.
+                </p>
+                <div style="display: flex; gap: 15px;">
+                    <a href="contact.html" class="btn btn-primary">Join Now</a>
+                    <a href="about.html" class="btn btn-outline">How It Works</a>
+                </div>
+            </div>
+            <div>
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Mentorship" style="border-radius: 20px; box-shadow: 20px 20px 0 var(--brand-amber);">
+            </div>
+        </div>
+    </section>
+
+    <section class="section-padding" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Services</h2>
+                <p>Comprehensive training and mentorship in today's most demanded skills.</p>
+            </div>
+            <div class="grid-4">
+                <div class="service-card">
+                    <div class="icon-box"><i class="fas fa-brain"></i></div>
+                    <h3>AI Mentorship</h3>
+                    <p>Master the tools of tomorrow with expert guidance in Artificial Intelligence.</p>
+                </div>
+                <div class="service-card">
+                    <div class="icon-box"><i class="fas fa-chart-line"></i></div>
+                    <h3>Data Science</h3>
+                    <p>Transform data into insights with our hands-on analytics training.</p>
+                </div>
+                <div class="service-card">
+                    <div class="icon-box"><i class="fas fa-code"></i></div>
+                    <h3>Programming</h3>
+                    <p>Build robust applications and learn best coding practices.</p>
+                </div>
+                <div class="service-card">
+                    <div class="icon-box"><i class="fas fa-calendar-alt"></i></div>
+                    <h3>Events</h3>
+                    <p>Join hackathons, webinars, and networking sessions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container" style="text-align: center;">
+            <div class="footer-logo" style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">
+                <span>Tech</span><span>Storm</span>
+            </div>
+            <p>&copy; 2026 TechStorm Global. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+
+        // For mobile dropdown interaction
+        function toggleMobileDropdown(element) {
+            if (window.innerWidth <= 968) {
+                element.classList.toggle('active');
+            }
+        }
+    </script>
+</body>
+</html>

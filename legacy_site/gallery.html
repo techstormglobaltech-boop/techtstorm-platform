@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | TechStorm Global</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- BRAND COLORS --- */
+        :root {
+            --brand-teal: #007C85;
+            --brand-amber: #FFB300;
+            --brand-dark: #1e293b;
+            --text-gray: #64748b;
+            --light-bg: #f8fafc;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { color: var(--brand-dark); line-height: 1.6; overflow-x: hidden; background: var(--light-bg); }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { width: 100%; height: auto; display: block; }
+
+        /* --- UTILITIES --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .btn { display: inline-block; padding: 12px 30px; border-radius: 50px; font-weight: 600; transition: var(--transition); border: 2px solid transparent; cursor: pointer; }
+        .btn-primary { background: var(--brand-amber); color: var(--brand-dark); }
+        .btn-primary:hover { background: #e6a200; }
+
+        /* --- NAVBAR --- */
+        header { background: rgba(255, 255, 255, 0.98); box-shadow: 0 2px 15px rgba(0,0,0,0.05); position: fixed; width: 100%; top: 0; z-index: 1000; }
+        nav { display: flex; justify-content: space-between; align-items: center; height: 80px; }
+        
+        .logo-container { height: 50px; display: flex; align-items: center; }
+        .logo-img { height: 100%; width: auto; }
+        .logo-text { font-size: 1.8rem; font-weight: 800; display: none; }
+        .text-tech { color: var(--brand-teal); }
+        .text-storm { color: var(--brand-amber); }
+
+        .nav-menu { display: flex; align-items: center; gap: 30px; }
+        .nav-item { font-weight: 500; color: var(--brand-dark); transition: var(--transition); }
+        .nav-item:hover, .nav-item.active { color: var(--brand-teal); }
+
+        /* Dropdown */
+        .dropdown { position: relative; cursor: pointer; }
+        .dropdown-menu {
+            position: absolute; top: 100%; left: 0; background: var(--white);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 8px; width: 180px;
+            opacity: 0; visibility: hidden; transform: translateY(10px); transition: var(--transition);
+            padding: 10px 0; border-top: 3px solid var(--brand-amber);
+        }
+        .dropdown:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item { display: block; padding: 10px 20px; font-size: 0.95rem; color: var(--text-gray); }
+        .dropdown-item:hover { background: var(--light-bg); color: var(--brand-teal); padding-left: 25px; }
+        
+        .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--brand-teal); }
+
+        /* --- HERO --- */
+        .gallery-hero {
+            padding: 160px 0 60px;
+            text-align: center;
+            background: var(--white);
+        }
+        .gallery-hero h1 { font-size: 3rem; color: var(--brand-teal); margin-bottom: 10px; }
+        .gallery-hero p { color: var(--text-gray); font-size: 1.1rem; }
+
+        /* --- FILTERS --- */
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+        .filter-btn {
+            padding: 10px 25px;
+            border: 2px solid #e2e8f0;
+            background: transparent;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-gray);
+            transition: var(--transition);
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--brand-teal);
+            color: white;
+            border-color: var(--brand-teal);
+        }
+
+        /* --- GALLERY GRID --- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding-bottom: 80px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            height: 250px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover img { transform: scale(1.1); }
+
+        /* Overlay Text on Hover */
+        .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px;
+            color: white;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+        .gallery-item:hover .overlay { opacity: 1; transform: translateY(0); }
+        
+        .overlay h4 { font-size: 1.1rem; margin-bottom: 5px; color: var(--brand-amber); }
+        .overlay p { font-size: 0.85rem; opacity: 0.9; }
+
+        /* Hide items when filtering */
+        .gallery-item.hide { display: none; }
+        /* Animation for showing items */
+        .gallery-item.show { animation: fadeIn 0.5s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- LIGHTBOX (MODAL) --- */
+        .lightbox {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .lightbox.active { opacity: 1; visibility: visible; }
+        
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 5px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* --- FOOTER --- */
+        footer { background: #0f172a; color: #cbd5e1; padding: 60px 0 20px; text-align: center; }
+        .footer-logo span:first-child { color: var(--brand-teal); }
+        .footer-logo span:last-child { color: var(--brand-amber); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 968px) {
+            .mobile-toggle { display: block; }
+            .nav-menu {
+                position: fixed; top: 80px; left: -100%; width: 100%; height: calc(100vh - 80px);
+                background: var(--white); flex-direction: column; align-items: flex-start;
+                padding: 40px; transition: 0.4s; overflow-y: auto;
+            }
+            .nav-menu.active { left: 0; }
+            .dropdown-menu { position: static; opacity: 1; visibility: visible; display: none; width: 100%; border-top: none; padding-left: 20px; box-shadow: none; transform: none; }
+            .dropdown.active .dropdown-menu { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo-container">
+                    <img src="Asset 1.png" alt="TechStorm Global" class="logo-img" onerror="this.style.display='none'; document.querySelector('.logo-text').style.display='block';">
+                    <div class="logo-text" style="display:none;">
+                        <span class="text-tech">Tech</span><span class="text-storm">Storm</span>
+                    </div>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-item">Home</a></li>
+                    <li><a href="about.html" class="nav-item">About</a></li>
+                    <li><a href="services.html" class="nav-item">Services</a></li>
+                    <li><a href="gallery.html" class="nav-item active">Gallery</a></li>
+                    
+                    <li class="nav-item dropdown" onclick="toggleMobileDropdown(this)">
+                        More <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 5px;"></i>
+                        <ul class="dropdown-menu">
+                            <li><a href="team.html" class="dropdown-item">Team</a></li>
+                            <li><a href="testimonials.html" class="dropdown-item">Testimonials</a></li>
+                            <li><a href="events.html" class="dropdown-item">Events</a></li>
+                            <li><a href="admin.html" class="dropdown-item" style="color: var(--brand-teal);"><strong>Admin Portal</strong></a></li>
+                        </ul>
+                    </li>
+
+                    <li><a href="contact.html" class="btn btn-primary" style="color: #000;">Contact Us</a></li>
+                </ul>
+
+                <div class="mobile-toggle" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="gallery-hero">
+        <div class="container">
+            <h1>Our Moments</h1>
+            <p>Explore the vibrant community, past events, and success stories at TechStorm.</p>
+        </div>
+    </section>
+
+    <section class="container">
+        
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="filterGallery('all', this)">All Moments</button>
+            <button class="filter-btn" onclick="filterGallery('events', this)">Events</button>
+            <button class="filter-btn" onclick="filterGallery('mentorship', this)">Mentorship</button>
+            <button class="filter-btn" onclick="filterGallery('showcase', this)">Student Showcase</button>
+        </div>
+
+        <div class="gallery-grid">
+            
+            <div class="gallery-item show" data-category="events" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1544531586-fde5298cdd40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Tech Conference 2024">
+                <div class="overlay">
+                    <h4>Tech Conference 2024</h4>
+                    <p>Annual meetup in Accra</p>
+                </div>
+            </div>
+
+            <div class="gallery-item show" data-category="mentorship" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="One-on-One Session">
+                <div class="overlay">
+                    <h4>One-on-One Session</h4>
+                    <p>Mentors guiding students</p>
+                </div>
+            </div>
+
+            <div class="gallery-item show" data-category="showcase" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Hackathon Winners">
+                <div class="overlay">
+                    <h4>Hackathon Winners</h4>
+                    <p>Team Alpha presenting their AI App</p>
+                </div>
+            </div>
+
+            <div class="gallery-item show" data-category="events" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Networking Night">
+                <div class="overlay">
+                    <h4>Networking Night</h4>
+                    <p>Connecting professionals</p>
+                </div>
+            </div>
+
+            <div class="gallery-item show" data-category="mentorship" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Group Coding">
+                <div class="overlay">
+                    <h4>Group Coding</h4>
+                    <p>Collaborative problem solving</p>
+                </div>
+            </div>
+
+            <div class="gallery-item show" data-category="showcase" onclick="openLightbox(this)">
+                <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Project Demo Day">
+                <div class="overlay">
+                    <h4>Project Demo Day</h4>
+                    <p>Showcasing final builds</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close">&times;</span>
+        <img class="lightbox-content" id="lightbox-img" src="">
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-logo" style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">
+                <span>Tech</span><span>Storm</span>
+            </div>
+            <p>&copy; 2026 TechStorm Global. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar Toggle
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+        function toggleMobileDropdown(element) {
+            if (window.innerWidth <= 968) {
+                element.classList.toggle('active');
+            }
+        }
+
+        // Gallery Filtering
+        function filterGallery(category, btn) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+
+            const items = document.querySelectorAll('.gallery-item');
+
+            items.forEach(item => {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.classList.remove('hide');
+                    item.classList.add('show');
+                } else {
+                    item.classList.remove('show');
+                    item.classList.add('hide');
+                }
+            });
+        }
+
+        // Lightbox Logic
+        function openLightbox(element) {
+            const imgSrc = element.querySelector('img').src;
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            
+            lightboxImg.src = imgSrc;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox(event) {
+            // Close if clicked on background or X button
+            if (event.target.id === 'lightbox' || event.target.classList.contains('lightbox-close')) {
+                document.getElementById('lightbox').classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>

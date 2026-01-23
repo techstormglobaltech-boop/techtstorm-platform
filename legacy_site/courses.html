@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Catalog | TechStorm Global</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- BRAND COLORS (Consistent) --- */
+        :root {
+            --brand-teal: #007C85;
+            --brand-amber: #FFB300;
+            --brand-dark: #1e293b;
+            --text-gray: #64748b;
+            --light-bg: #f8fafc;
+            --white: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--light-bg); color: var(--brand-dark); line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+        
+        /* Navbar & Footer (Simplified for brevity - assume same as index.html) */
+        header { background: white; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .nav-flex { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; font-size: 1.5rem; }
+        .btn-primary { background: var(--brand-amber); padding: 10px 25px; border-radius: 50px; font-weight: 600; border: none; cursor: pointer; }
+
+        /* --- CATALOG HEADER --- */
+        .catalog-header { background: var(--brand-dark); color: white; padding: 60px 0; text-align: center; }
+        .catalog-header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        
+        /* --- SEARCH & FILTER --- */
+        .filter-bar { background: white; padding: 20px; border-radius: 10px; margin-top: -30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .search-box { flex: 1; position: relative; }
+        .search-box input { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-gray); }
+        .filter-btn { padding: 10px 20px; border: 1px solid #e2e8f0; background: white; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.3s; }
+        .filter-btn:hover, .filter-btn.active { background: var(--brand-teal); color: white; border-color: var(--brand-teal); }
+
+        /* --- COURSE GRID --- */
+        .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 50px 0; }
+        .course-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .course-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        
+        .thumb { height: 180px; background: #cbd5e1; position: relative; }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .category-tag { position: absolute; top: 15px; left: 15px; background: var(--brand-amber); color: var(--brand-dark); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        
+        .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .instructor { font-size: 0.85rem; color: var(--text-gray); margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+        .course-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.4; color: var(--brand-dark); }
+        .meta { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-gray); margin-bottom: 20px; margin-top: auto; }
+        
+        .card-footer { border-top: 1px solid #f1f5f9; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .price { font-weight: 700; font-size: 1.1rem; color: var(--brand-teal); }
+        .enroll-btn { color: var(--brand-dark); font-weight: 600; font-size: 0.9rem; }
+        .enroll-btn:hover { color: var(--brand-teal); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container nav-flex">
+            <div class="logo"><span style="color:var(--brand-teal)">Tech</span><span style="color:var(--brand-amber)">Storm</span></div>
+            <a href="index.html" style="font-weight: 500;">Back to Home</a>
+        </div>
+    </header>
+
+    <div class="catalog-header">
+        <div class="container">
+            <h1>Explore Courses</h1>
+            <p style="opacity: 0.8;">Master the skills that matter today.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for Python, Data Science, AI...">
+            </div>
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Programming</button>
+            <button class="filter-btn">Data Science</button>
+            <button class="filter-btn">AI & ML</button>
+        </div>
+
+        <div class="course-grid">
+            
+            <div class="course-card">
+                <div class="thumb">
+                    <img src="https://images.unsplash.com/photo-1587620962725-abab7fe55159?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Course">
+                    <span class="category-tag">Programming</span>
+                </div>
+                <div class="card-body">
+                    <div class="instructor"><i class="fas fa-user-circle"></i> John Doe</div>
+                    <div class="course-title">Full Stack Web Development with React & Node.js</div>
+                    <div class="meta">
+                        <span><i class="fas fa-book-open"></i> 12 Modules</span>
+                        <span><i class="fas fa-star" style="color: var(--brand-amber);"></i> 4.8</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="price">$49.99</span>
+                    <a href="course-detail.html" class="enroll-btn">View Details <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="course-card">
+                <div class="thumb">
+                    <img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Course">
+                    <span class="category-tag">AI & ML</span>
+                </div>
+                <div class="card-body">
+                    <div class="instructor"><i class="fas fa-user-circle"></i> Sarah Osei</div>
+                    <div class="course-title">Introduction to Machine Learning for Beginners</div>
+                    <div class="meta">
+                        <span><i class="fas fa-book-open"></i> 8 Modules</span>
+                        <span><i class="fas fa-star" style="color: var(--brand-amber);"></i> 4.9</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="price">Free</span>
+                    <a href="course-detail.html" class="enroll-btn">View Details <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <div class="course-card">
+                <div class="thumb">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Course">
+                    <span class="category-tag">Data Science</span>
+                </div>
+                <div class="card-body">
+                    <div class="instructor"><i class="fas fa-user-circle"></i> Emmanuel K.</div>
+                    <div class="course-title">Data Visualization Mastery with Python</div>
+                    <div class="meta">
+                        <span><i class="fas fa-book-open"></i> 10 Modules</span>
+                        <span><i class="fas fa-star" style="color: var(--brand-amber);"></i> 4.7</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="price">$29.99</span>
+                    <a href="course-detail.html" class="enroll-btn">View Details <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
