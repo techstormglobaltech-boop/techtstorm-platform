@@ -50,7 +50,7 @@ export async function createMeeting(data: {
       const end = new Date(data.endDate!);
       const selectedDays = data.daysOfWeek?.map(Number) || []; // Convert to numbers [0-6]
       
-      const meetingsToCreate = [];
+      const meetingsToCreate: any[] = [];
       let current = new Date(start);
 
       while (current <= end) {

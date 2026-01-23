@@ -93,7 +93,7 @@ export async function getMenteeDashboardData() {
     orderBy: { enrolledAt: "desc" }
   });
 
-  let jumpBackCourse = null;
+  let jumpBackCourse: any = null;
   if (recentEnrollment) {
     let totalLessons = 0;
     let completedLessons = 0;
