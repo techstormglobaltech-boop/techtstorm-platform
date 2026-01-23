@@ -1,12 +1,13 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="TechStorm AI Engine", version="1.0.0")
 
-# CORS Configuration (Allow requests from Next.js frontend)
-origins = [
-    "http://localhost:3000",
-]
+# CORS Configuration
+# In production, set ALLOWED_ORIGINS to your Vercel domain (e.g., "https://techstorm-web.vercel.app")
+# For now, we default to "*" to ensure your deployment works immediately.
+origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
     CORSMiddleware,
