@@ -10,6 +10,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(db) as any,
   session: { strategy: "jwt" }, // Prisma adapter usually defaults to database sessions, but JWT is often easier for credentials
+  trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
