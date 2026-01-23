@@ -22,13 +22,13 @@ export const authConfig = {
 
         // Role-based protection
         if (isAdminPage && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl));
+          return Response.redirect(new URL("/", nextUrl.origin));
         }
         if (isMentorPage && userRole !== "MENTOR" && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl));
+          return Response.redirect(new URL("/", nextUrl.origin));
         }
         if (isMenteePage && userRole !== "MENTEE" && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl));
+          return Response.redirect(new URL("/", nextUrl.origin));
         }
         
         // Learn page allows Mentee, Mentor, and Admin
@@ -38,15 +38,15 @@ export const authConfig = {
       // If logged in and on a public page like login, register or the root home page, 
       // redirect them to their respective dashboard.
       const isPublicActionPage = nextUrl.pathname === "/login" || 
-                                 nextUrl.pathname === "/register" || 
-                                 nextUrl.pathname === "/";
+                                 nextUrl.pathname === "/register";
+                                 // Removed root "/" check to prevent redirect loops or unexpected behavior on landing page
 
       if (isLoggedIn && isPublicActionPage) {
         let redirectUrl = "/mentee";
         if (userRole === "ADMIN") redirectUrl = "/admin";
         else if (userRole === "MENTOR") redirectUrl = "/mentor";
         
-        return Response.redirect(new URL(redirectUrl, nextUrl));
+        return Response.redirect(new URL(redirectUrl, nextUrl.origin));
       }
 
       return true;
