@@ -52,8 +52,8 @@ export async function getStudentGrades() {
     // Transform data into a flat "Gradebook" structure per course
     const gradebook = enrollments.map(enrollment => {
       const course = enrollment.course;
-      const quizzes = [];
-      const assignments = [];
+      const quizzes: any[] = [];
+      const assignments: any[] = [];
 
       course.modules.forEach(module => {
         module.lessons.forEach(lesson => {
