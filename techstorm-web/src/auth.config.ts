@@ -22,13 +22,13 @@ export const authConfig = {
 
         // Role-based protection
         if (isAdminPage && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl.origin));
+          return Response.redirect(new URL("/", nextUrl));
         }
         if (isMentorPage && userRole !== "MENTOR" && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl.origin));
+          return Response.redirect(new URL("/", nextUrl));
         }
         if (isMenteePage && userRole !== "MENTEE" && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl.origin));
+          return Response.redirect(new URL("/", nextUrl));
         }
         
         // Learn page allows Mentee, Mentor, and Admin
@@ -46,7 +46,7 @@ export const authConfig = {
         if (userRole === "ADMIN") redirectUrl = "/admin";
         else if (userRole === "MENTOR") redirectUrl = "/mentor";
         
-        return Response.redirect(new URL(redirectUrl, nextUrl.origin));
+        return Response.redirect(new URL(redirectUrl, nextUrl));
       }
 
       return true;
