@@ -7,6 +7,12 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
+      
+      // Safe base URL construction to prevent Invalid URL errors on Vercel
+      const protocol = nextUrl.protocol || 'https:';
+      const host = nextUrl.host || 'localhost:3000';
+      const baseUrl = `${protocol}//${host}`;
+      
       const userRole = auth?.user?.role;
       
       const isUrl = (path: string) => nextUrl.pathname.startsWith(path);
@@ -22,13 +28,13 @@ export const authConfig = {
 
         // Role-based protection
         if (isAdminPage && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl));
+          return Response.redirect(new URL("/", baseUrl));
         }
         if (isMentorPage && userRole !== "MENTOR" && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl));
+          return Response.redirect(new URL("/", baseUrl));
         }
         if (isMenteePage && userRole !== "MENTEE" && userRole !== "ADMIN") {
-          return Response.redirect(new URL("/", nextUrl));
+          return Response.redirect(new URL("/", baseUrl));
         }
         
         // Learn page allows Mentee, Mentor, and Admin
@@ -46,7 +52,7 @@ export const authConfig = {
         if (userRole === "ADMIN") redirectUrl = "/admin";
         else if (userRole === "MENTOR") redirectUrl = "/mentor";
         
-        return Response.redirect(new URL(redirectUrl, nextUrl));
+        return Response.redirect(new URL(redirectUrl, baseUrl));
       }
 
       return true;
