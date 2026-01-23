@@ -19,7 +19,7 @@ export default async function MenteeDashboard() {
   const upcomingMeetings = meetings.slice(0, 3);
   
   // Use first 6 achievements (or just display a few)
-  const achievements = achievementsData.success ? achievementsData.data.slice(0, 6) : [];
+  const achievements = achievementsData.success ? achievementsData.data?.slice(0, 6) || [] : [];
 
   return (
     <div className="space-y-8">

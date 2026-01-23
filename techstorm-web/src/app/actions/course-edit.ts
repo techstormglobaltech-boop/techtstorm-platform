@@ -170,7 +170,7 @@ export async function deleteLesson(lessonId: string, courseId: string) {
 }
 
 // QUIZ ACTIONS
-export async function saveQuiz(lessonId: string, data: { title: string }, courseId: string) {
+export async function saveQuiz(lessonId: string, data: { title: string, id?: string }, courseId: string) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
@@ -288,7 +288,7 @@ export async function deleteQuestion(questionId: string, courseId: string) {
 }
 
 // ASSIGNMENT ACTIONS
-export async function saveAssignment(lessonId: string, data: { title: string, description: string }, courseId: string) {
+export async function saveAssignment(lessonId: string, data: { title: string, description: string, id?: string }, courseId: string) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 

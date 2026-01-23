@@ -35,7 +35,11 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
     const newValue = !globalSettings.maintenanceMode;
     
     setGlobalSettings({...globalSettings, maintenanceMode: newValue});
-    const result = await updateGlobalSettings({ maintenanceMode: newValue });
+    const result = await updateGlobalSettings({ 
+        platformName: globalSettings.platformName,
+        supportEmail: globalSettings.supportEmail,
+        maintenanceMode: newValue 
+    });
     if (result.success) {
         toast.success(`Platform is now ${newValue ? 'Under Maintenance' : 'Live'}`);
         startTransition(() => router.refresh());
@@ -49,7 +53,8 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
     setIsSubmitting(true);
     const result = await updateGlobalSettings({
         platformName: globalSettings.platformName,
-        supportEmail: globalSettings.supportEmail
+        supportEmail: globalSettings.supportEmail,
+        maintenanceMode: globalSettings.maintenanceMode
     });
     setIsSubmitting(false);
 
