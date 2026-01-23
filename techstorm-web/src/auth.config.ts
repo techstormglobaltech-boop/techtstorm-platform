@@ -9,7 +9,9 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       
       // Safe base URL construction to prevent Invalid URL errors on Vercel
-      const protocol = nextUrl.protocol || 'https:';
+      let protocol = nextUrl.protocol || 'https:';
+      if (!protocol.endsWith(':')) protocol += ':';
+      
       const host = nextUrl.host || 'localhost:3000';
       const baseUrl = `${protocol}//${host}`;
       
