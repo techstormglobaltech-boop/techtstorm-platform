@@ -8,6 +8,11 @@ const { auth } = NextAuth({
 });
 
 export default async function middleware(req: any) {
+  // Force HTTPS protocol for NextAuth detection behind Vercel proxy
+  if (req.headers) {
+    req.headers.set('x-forwarded-proto', 'https');
+  }
+
   try {
     return await auth(req);
   } catch (error) {
