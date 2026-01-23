@@ -1,63 +1,21 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
-import { generateQuiz } from "@/lib/ai";
+import { fetchApi } from "@/lib/api-client";
 
 export async function getCourseForEdit(courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-
-  const course = await db.course.findUnique({
-    where: {
-      id: courseId,
-      instructorId: session.user.id // Ensure ownership
-    },
-    include: {
-      modules: {
-        orderBy: { position: "asc" },
-        include: {
-          lessons: {
-            orderBy: { position: "asc" },
-            include: {
-              quizzes: {
-                include: {
-                  questions: {
-                    include: {
-                      options: true
-                    }
-                  }
-                }
-              },
-              assignments: true
-            }
-          }
-        }
-      }
-    }
-  });
-
-  return course;
+  try {
+    return await fetchApi(`/courses/${courseId}/edit`);
+  } catch (error) {
+    return null;
+  }
 }
 
 export async function updateCourseDetails(courseId: string, data: any) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.course.update({
-      where: {
-        id: courseId,
-        instructorId: session.user.id
-      },
-      data: {
-        title: data.title,
-        description: data.description,
-        image: data.image,
-        price: data.price ? parseFloat(data.price) : null,
-        category: data.category,
-      }
+    await fetchApi(`/courses/${courseId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
     });
 
     revalidatePath(`/mentor/courses/${courseId}`);
@@ -69,21 +27,10 @@ export async function updateCourseDetails(courseId: string, data: any) {
 
 // MODULE ACTIONS
 export async function createModule(courseId: string, title: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    const lastModule = await db.module.findFirst({
-      where: { courseId },
-      orderBy: { position: "desc" }
-    });
-
-    await db.module.create({
-      data: {
-        title,
-        courseId,
-        position: lastModule ? lastModule.position + 1 : 0
-      }
+    await fetchApi("/content/modules", {
+      method: "POST",
+      body: JSON.stringify({ courseId, title }),
     });
 
     revalidatePath(`/mentor/courses/${courseId}`);
@@ -94,11 +41,8 @@ export async function createModule(courseId: string, title: string) {
 }
 
 export async function deleteModule(moduleId: string, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.module.delete({ where: { id: moduleId } });
+    await fetchApi(`/content/modules/${moduleId}`, { method: "DELETE" });
     revalidatePath(`/mentor/courses/${courseId}`);
     return { success: true };
   } catch (error) {
@@ -108,22 +52,10 @@ export async function deleteModule(moduleId: string, courseId: string) {
 
 // LESSON ACTIONS
 export async function createLesson(moduleId: string, title: string, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    const lastLesson = await db.lesson.findFirst({
-      where: { moduleId },
-      orderBy: { position: "desc" }
-    });
-
-    await db.lesson.create({
-      data: {
-        title,
-        moduleId,
-        position: lastLesson ? lastLesson.position + 1 : 0,
-        isFree: false
-      }
+    await fetchApi("/content/lessons", {
+      method: "POST",
+      body: JSON.stringify({ moduleId, title, courseId }),
     });
 
     revalidatePath(`/mentor/courses/${courseId}`);
@@ -134,19 +66,10 @@ export async function createLesson(moduleId: string, title: string, courseId: st
 }
 
 export async function updateLesson(lessonId: string, data: any, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.lesson.update({
-      where: { id: lessonId },
-      data: {
-        title: data.title,
-        description: data.description,
-        videoUrl: data.videoUrl,
-        isFree: data.isFree,
-        duration: data.duration ? parseInt(data.duration) : null
-      }
+    await fetchApi(`/content/lessons/${lessonId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
     });
 
     revalidatePath(`/mentor/courses/${courseId}`);
@@ -157,11 +80,8 @@ export async function updateLesson(lessonId: string, data: any, courseId: string
 }
 
 export async function deleteLesson(lessonId: string, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.lesson.delete({ where: { id: lessonId } });
+    await fetchApi(`/content/lessons/${lessonId}`, { method: "DELETE" });
     revalidatePath(`/mentor/courses/${courseId}`);
     return { success: true };
   } catch (error) {
@@ -171,14 +91,10 @@ export async function deleteLesson(lessonId: string, courseId: string) {
 
 // QUIZ ACTIONS
 export async function saveQuiz(lessonId: string, data: { title: string, id?: string }, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    const quiz = await db.quiz.upsert({
-      where: { id: (data as any).id || "new" },
-      update: { title: data.title },
-      create: { title: data.title, lessonId }
+    const quiz = await fetchApi("/content/quizzes", {
+      method: "POST",
+      body: JSON.stringify({ lessonId, data, courseId }),
     });
     revalidatePath(`/mentor/courses/${courseId}`);
     return { success: true, id: quiz.id };
@@ -188,84 +104,25 @@ export async function saveQuiz(lessonId: string, data: { title: string, id?: str
 }
 
 export async function generateQuizFromAI(lessonId: string, lessonTitle: string, courseId: string) {
-    const session = await auth();
-    if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+    await fetchApi("/content/quizzes/generate-ai", {
+      method: "POST",
+      body: JSON.stringify({ lessonId, lessonTitle, courseId }),
+    });
 
-    const aiQuiz = await generateQuiz(lessonTitle);
-    if (!aiQuiz) return { error: "AI Generation failed" };
-
-    try {
-        await db.$transaction(async (tx) => {
-            // 1. Find or create quiz
-            const existingQuiz = await tx.quiz.findFirst({
-                where: { lessonId }
-            });
-
-            const quiz = existingQuiz 
-                ? await tx.quiz.update({
-                    where: { id: existingQuiz.id },
-                    data: { title: aiQuiz.title }
-                  })
-                : await tx.quiz.create({
-                    data: { title: aiQuiz.title, lessonId }
-                  });
-
-            // 2. Add questions
-            await tx.question.createMany({
-                data: aiQuiz.questions.map((q: any) => ({
-                    quizId: quiz.id,
-                    text: q.text,
-                    correctAnswer: q.correct_answer
-                }))
-            });
-
-            // Note: Prisma's createMany doesn't return IDs, so we can't easily do options in one go 
-            // without a loop or separate queries. Let's do it individually for the options to ensure 
-            // they are linked to the correct questions.
-            
-            // Re-fetch questions to get their IDs
-            const savedQuestions = await tx.question.findMany({
-                where: { quizId: quiz.id },
-                orderBy: { id: 'desc' },
-                take: aiQuiz.questions.length
-            });
-
-            // Map AI questions to saved questions by text to match options
-            for (const aiQ of aiQuiz.questions) {
-                const savedQ = savedQuestions.find(sq => sq.text === aiQ.text);
-                if (savedQ) {
-                    await tx.option.createMany({
-                        data: aiQ.options.map((opt: string) => ({
-                            questionId: savedQ.id,
-                            text: opt
-                        }))
-                    });
-                }
-            }
-        });
-
-        revalidatePath(`/mentor/courses/${courseId}`);
-        return { success: true };
-    } catch (error) {
-        console.error("AI QUIZ SAVE ERROR:", error);
-        return { error: "Failed to save AI quiz" };
-    }
+    revalidatePath(`/mentor/courses/${courseId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("AI QUIZ SAVE ERROR:", error);
+    return { error: "Failed to save AI quiz" };
+  }
 }
 
 export async function addQuestion(quizId: string, data: any, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.question.create({
-      data: {
-        quizId,
-        text: data.text,
-        correctAnswer: data.correctAnswer,
-        options: {
-          create: data.options.map((opt: string) => ({ text: opt }))
-        }
-      }
+    await fetchApi("/content/questions", {
+      method: "POST",
+      body: JSON.stringify({ quizId, data, courseId }),
     });
     revalidatePath(`/mentor/courses/${courseId}`);
     return { success: true };
@@ -275,11 +132,8 @@ export async function addQuestion(quizId: string, data: any, courseId: string) {
 }
 
 export async function deleteQuestion(questionId: string, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.question.delete({ where: { id: questionId } });
+    await fetchApi(`/content/questions/${questionId}`, { method: "DELETE" });
     revalidatePath(`/mentor/courses/${courseId}`);
     return { success: true };
   } catch (error) {
@@ -289,14 +143,10 @@ export async function deleteQuestion(questionId: string, courseId: string) {
 
 // ASSIGNMENT ACTIONS
 export async function saveAssignment(lessonId: string, data: { title: string, description: string, id?: string }, courseId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-
   try {
-    await db.assignment.upsert({
-      where: { id: (data as any).id || "new" },
-      update: { title: data.title, description: data.description },
-      create: { title: data.title, description: data.description, lessonId }
+    await fetchApi("/content/assignments", {
+      method: "POST",
+      body: JSON.stringify({ lessonId, data, courseId }),
     });
     revalidatePath(`/mentor/courses/${courseId}`);
     return { success: true };

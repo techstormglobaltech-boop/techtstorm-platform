@@ -1,7 +1,7 @@
 import { getCourseById } from "@/app/actions/public-course";
 import CourseDetail from "@/components/public/CourseDetail";
 import { auth } from "@/auth";
-import { db } from "@/lib/db";
+import { checkEnrollment } from "@/app/actions/enrollment";
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,15 +10,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
 
   let isEnrolled = false;
   if (session?.user?.id) {
-    const enrollment = await db.enrollment.findUnique({
-        where: {
-            userId_courseId: {
-                userId: session.user.id,
-                courseId: id
-            }
-        }
-    });
-    isEnrolled = !!enrollment;
+    isEnrolled = await checkEnrollment(id);
   }
 
   return <CourseDetail course={course} isEnrolled={isEnrolled} />;

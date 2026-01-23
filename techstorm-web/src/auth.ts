@@ -1,15 +1,14 @@
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
 import { authConfig } from "./auth.config";
 import { z } from "zod";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(db) as any,
-  session: { strategy: "jwt" }, // Prisma adapter usually defaults to database sessions, but JWT is often easier for credentials
+  trustHost: true,
+  session: { strategy: "jwt" },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -19,12 +18,29 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
-          const user = await db.user.findUnique({ where: { email } });
-          if (!user || !user.password) return null;
+          
+          try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
 
-          const passwordsMatch = await bcrypt.compare(password, user.password);
+            if (!res.ok) return null;
 
-          if (passwordsMatch) return user;
+            const data = await res.json();
+            // data should contain { access_token, user: { id, email, role, ... } }
+            
+            if (data.user && data.access_token) {
+              return {
+                ...data.user,
+                accessToken: data.access_token,
+              };
+            }
+          } catch (error) {
+            console.error("Login error:", error);
+            return null;
+          }
         }
 
         console.log("Invalid credentials");

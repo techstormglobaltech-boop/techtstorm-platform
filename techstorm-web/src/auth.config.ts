@@ -8,9 +8,9 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       
-      // Safe base URL construction to prevent Invalid URL errors on Vercel
-      let protocol = nextUrl.protocol || 'https:';
-      if (!protocol.endsWith(':')) protocol += ':';
+      // Force http for localhost, otherwise use the request protocol
+      const isLocal = nextUrl.hostname === "localhost" || nextUrl.hostname === "127.0.0.1";
+      const protocol = isLocal ? "http:" : nextUrl.protocol;
       
       const host = nextUrl.host || 'localhost:3000';
       const baseUrl = `${protocol}//${host}`;
@@ -46,8 +46,8 @@ export const authConfig = {
       // If logged in and on a public page like login, register or the root home page, 
       // redirect them to their respective dashboard.
       const isPublicActionPage = nextUrl.pathname === "/login" || 
-                                 nextUrl.pathname === "/register";
-                                 // Removed root "/" check to prevent redirect loops or unexpected behavior on landing page
+                                 nextUrl.pathname === "/register" ||
+                                 nextUrl.pathname === "/";
 
       if (isLoggedIn && isPublicActionPage) {
         let redirectUrl = "/mentee";
@@ -59,7 +59,6 @@ export const authConfig = {
 
       return true;
     },
-    // Add user role to the session
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
@@ -67,14 +66,18 @@ export const authConfig = {
       if (token.role && session.user) {
         session.user.role = token.role as "ADMIN" | "MENTOR" | "MENTEE";
       }
+      if (token.accessToken && session.user) {
+        session.user.accessToken = token.accessToken as string;
+      }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.accessToken = user.accessToken;
       }
       return token;
     }
   },
-  providers: [], // Configured in auth.ts
+  providers: [],
 } satisfies NextAuthConfig;

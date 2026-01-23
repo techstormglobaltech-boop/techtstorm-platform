@@ -1,38 +1,13 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { auth } from "@/auth";
+import { fetchApi } from "@/lib/api-client";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function enrollInCourse(courseId: string) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return { error: "UNAUTHORIZED" };
-  }
-
-  // Check if already enrolled
-  const existingEnrollment = await db.enrollment.findUnique({
-    where: {
-      userId_courseId: {
-        userId: session.user.id,
-        courseId: courseId,
-      },
-    },
-  });
-
-  if (existingEnrollment) {
-    return { success: true, alreadyEnrolled: true };
-  }
-
-  // Create enrollment
   try {
-    await db.enrollment.create({
-      data: {
-        userId: session.user.id,
-        courseId: courseId,
-      },
+    const result = await fetchApi("/students/enroll", {
+      method: "POST",
+      body: JSON.stringify({ courseId }),
     });
     
     revalidatePath(`/courses/${courseId}`);
@@ -41,5 +16,13 @@ export async function enrollInCourse(courseId: string) {
   } catch (error) {
     console.error("Enrollment error:", error);
     return { error: "Failed to enroll" };
+  }
+}
+
+export async function checkEnrollment(courseId: string) {
+  try {
+    return await fetchApi(`/students/courses/${courseId}/enrolled`);
+  } catch (error) {
+    return false;
   }
 }

@@ -1,49 +1,22 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
-import { UserRole } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { UserRole } from "@/types/user";
+import { fetchApi } from "@/lib/api-client";
 
 export async function getUsers(role: UserRole) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return [];
-
-  const users = await db.user.findMany({
-    where: { role },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      status: true,
-      createdAt: true,
-      _count: {
-        select: {
-          coursesTeaching: true, // For Mentors
-          enrollments: true,      // For Mentees
-        }
-      }
-    }
-  });
-
-  return users;
+  try {
+    return await fetchApi(`/admin/users?role=${role}`);
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function updateUser(userId: string, data: { name: string; email: string; role: UserRole }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
   try {
-    await db.user.update({
-      where: { id: userId },
-      data: {
-        name: data.name,
-        email: data.email,
-        role: data.role
-      }
+    await fetchApi(`/admin/users/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
     });
     revalidatePath("/admin/mentors");
     revalidatePath("/admin/mentees");
@@ -54,15 +27,12 @@ export async function updateUser(userId: string, data: { name: string; email: st
 }
 
 export async function toggleUserStatus(userId: string, currentStatus: string) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
   const newStatus = currentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
 
   try {
-    await db.user.update({
-      where: { id: userId },
-      data: { status: newStatus as any }
+    await fetchApi(`/admin/users/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: newStatus }),
     });
     revalidatePath("/admin/mentors");
     revalidatePath("/admin/mentees");
@@ -73,30 +43,13 @@ export async function toggleUserStatus(userId: string, currentStatus: string) {
 }
 
 export async function createUser(data: { name: string; email: string; role: UserRole; password?: string }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
-  const { name, email, role, password } = data;
-
-  // Check if user exists
-  const existingUser = await db.user.findUnique({ where: { email } });
-  if (existingUser) return { error: "User with this email already exists." };
-
-  // Use provided password or default to 'password123'
-  const passwordToHash = password || "password123"; 
-  const hashedPassword = await bcrypt.hash(passwordToHash, 10);
-
   try {
-    await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-      }
+    await fetchApi("/admin/users", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
 
-    revalidatePath(`/admin/${role.toLowerCase()}s`); 
+    revalidatePath(`/admin/${data.role.toLowerCase()}s`); 
     return { success: true };
   } catch (error) {
     return { error: "Failed to create user." };
@@ -104,11 +57,8 @@ export async function createUser(data: { name: string; email: string; role: User
 }
 
 export async function deleteUser(userId: string) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
   try {
-    await db.user.delete({ where: { id: userId } });
+    await fetchApi(`/admin/users/${userId}`, { method: "DELETE" });
     revalidatePath("/admin/mentors");
     revalidatePath("/admin/mentees");
     return { success: true };

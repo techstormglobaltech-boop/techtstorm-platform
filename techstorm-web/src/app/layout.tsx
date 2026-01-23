@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-import { db } from "@/lib/db";
 import { auth } from "@/auth";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
+import { getMaintenanceMode } from "@/app/actions/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -35,13 +35,7 @@ export default async function RootLayout({
   const isAdmin = session?.user?.role === "ADMIN";
 
   // Check Maintenance Mode
-  let isMaintenance = false;
-  try {
-    const settings = await db.globalSetting.findUnique({ where: { id: "system_settings" } });
-    isMaintenance = !!settings?.maintenanceMode;
-  } catch (e) {
-    // Ignore DB errors during build
-  }
+  const isMaintenance = await getMaintenanceMode();
 
   return (
     <html lang="en">

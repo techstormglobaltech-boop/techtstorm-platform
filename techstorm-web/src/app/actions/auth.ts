@@ -1,10 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const RegisterSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -26,24 +26,17 @@ export async function register(formData: FormData) {
   const { email, password, name } = validatedFields.data;
 
   try {
-    const existingUser = await db.user.findUnique({
-      where: { email },
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
     });
 
-    if (existingUser) {
-      return { error: "Email already in use" };
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { error: data.message || "Something went wrong" };
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: "MENTEE", // Default role
-      },
-    });
 
     return { success: "Account created!" };
 
@@ -53,10 +46,12 @@ export async function register(formData: FormData) {
 }
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
+  const callbackUrl = formData.get("callbackUrl")?.toString();
+  
   try {
     await signIn("credentials", {
       ...Object.fromEntries(formData),
-      redirectTo: "/", // Redirect to home/root and let middleware handle dashboard redirection
+      redirectTo: callbackUrl || "/login", 
     });
   } catch (error) {
     if (error instanceof AuthError) {

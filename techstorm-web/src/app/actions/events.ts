@@ -1,24 +1,22 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { fetchApi } from "@/lib/api-client";
 
 export async function getEvents() {
-  return await db.event.findMany({
-    orderBy: { date: "asc" }
-  });
+  try {
+    return await fetchApi("/events");
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function getUpcomingEvents() {
-  return await db.event.findMany({
-    where: {
-      date: {
-        gte: new Date()
-      }
-    },
-    orderBy: { date: "asc" }
-  });
+  try {
+    return await fetchApi("/events/upcoming");
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function createEvent(data: {
@@ -29,15 +27,10 @@ export async function createEvent(data: {
   isVirtual: boolean;
   image?: string;
 }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
   try {
-    const event = await db.event.create({
-      data: {
-        ...data,
-        date: new Date(data.date),
-      }
+    const event = await fetchApi("/events", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
     revalidatePath("/admin/events");
     revalidatePath("/events");
@@ -55,16 +48,10 @@ export async function editEvent(id: string, data: {
   isVirtual: boolean;
   image?: string;
 }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
   try {
-    await db.event.update({
-      where: { id },
-      data: {
-        ...data,
-        date: new Date(data.date),
-      }
+    await fetchApi(`/events/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
     });
     revalidatePath("/admin/events");
     revalidatePath("/events");
@@ -75,11 +62,8 @@ export async function editEvent(id: string, data: {
 }
 
 export async function deleteEvent(id: string) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
-
   try {
-    await db.event.delete({ where: { id } });
+    await fetchApi(`/events/${id}`, { method: "DELETE" });
     revalidatePath("/admin/events");
     revalidatePath("/events");
     return { success: true };

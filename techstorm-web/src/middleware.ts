@@ -8,8 +8,11 @@ const { auth } = NextAuth({
 });
 
 export default async function middleware(req: any) {
-  // Force HTTPS protocol for NextAuth detection behind Vercel proxy
-  if (req.headers) {
+  const host = req.headers.get("host");
+  const isLocalhost = host?.includes("localhost") || host?.includes("127.0.0.1");
+
+  // Only set the forwarded proto if we are NOT on localhost
+  if (req.headers && !isLocalhost) {
     req.headers.set('x-forwarded-proto', 'https');
   }
 

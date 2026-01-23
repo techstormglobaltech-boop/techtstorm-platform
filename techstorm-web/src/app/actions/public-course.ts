@@ -1,44 +1,21 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { fetchApi } from "@/lib/api-client";
 
 export async function getPublishedCourses() {
-  const courses = await db.course.findMany({
-    where: {
-      status: "PUBLISHED"
-    },
-    include: {
-      instructor: {
-        select: { name: true }
-      },
-      _count: {
-        select: { modules: true }
-      }
-    },
-    orderBy: { createdAt: "desc" }
-  });
-
-  return courses;
+  try {
+    return await fetchApi("/public/courses");
+  } catch (error) {
+    console.error("Failed to fetch published courses:", error);
+    return [];
+  }
 }
 
 export async function getCourseById(id: string) {
-  const course = await db.course.findUnique({
-    where: { id },
-    include: {
-      instructor: {
-        select: { name: true, image: true, email: true }
-      },
-      modules: {
-        include: {
-          lessons: true
-        },
-        orderBy: { position: "asc" }
-      },
-      _count: {
-        select: { enrollments: true }
-      }
-    }
-  });
-
-  return course;
+  try {
+    return await fetchApi(`/public/courses/${id}`);
+  } catch (error) {
+    console.error("Failed to fetch course by ID:", error);
+    return null;
+  }
 }
