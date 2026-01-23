@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { auth } from "@/auth";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
 
+export const dynamic = "force-dynamic";
+
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
