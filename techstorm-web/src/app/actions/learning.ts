@@ -97,7 +97,7 @@ export async function getMenteeDashboardData() {
   if (recentEnrollment) {
     let totalLessons = 0;
     let completedLessons = 0;
-    let lastLesson = null;
+    let lastLesson: any = null;
 
     recentEnrollment.course.modules.forEach(module => {
       module.lessons.forEach(lesson => {
