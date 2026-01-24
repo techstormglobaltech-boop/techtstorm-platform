@@ -5,6 +5,7 @@ import "./globals.css";
 import { auth } from "@/auth";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
 import { getMaintenanceMode } from "@/app/actions/settings";
+import NextTopLoader from 'nextjs-toploader';
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,17 @@ export default async function RootLayout({
       <body
         className={`${poppins.variable} antialiased font-sans bg-gray-50 text-slate-800`}
       >
+        <NextTopLoader 
+          color="#008080"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #008080,0 0 5px #008080"
+        />
         <Toaster position="top-right" />
         <MaintenanceGuard isMaintenance={isMaintenance} isAdmin={isAdmin}>
             {children}
