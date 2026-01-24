@@ -7,6 +7,7 @@ import { enrollInCourse } from "@/app/actions/enrollment";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CourseDetailProps {
   course: any; 
@@ -18,8 +19,15 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
   if (!course) return <div>Course not found</div>;
+
+  const toggleModule = (id: string) => {
+    setExpandedModules(prev => 
+        prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+    );
+  };
 
   const handleEnrollClick = () => {
     if (isEnrolled) {
@@ -124,17 +132,55 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
                     <div>
                         <h3 className="text-2xl font-bold text-brand-dark mb-6">Course Content</h3>
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 divide-y divide-slate-100 overflow-hidden">
-                            {course.modules?.map((module: any, i: number) => (
-                                <div key={i} className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors cursor-pointer group">
-                                    <div className="flex items-center gap-4">
-                                        <i className="fas fa-chevron-down text-slate-400 group-hover:text-brand-teal transition-colors"></i>
-                                        <span className="font-semibold text-brand-dark">{module.title}</span>
+                            {course.modules?.map((module: any, i: number) => {
+                                const isExpanded = expandedModules.includes(module.id);
+                                return (
+                                    <div key={module.id} className="flex flex-col">
+                                        <div 
+                                            onClick={() => toggleModule(module.id)}
+                                            className="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors cursor-pointer group"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <motion.i 
+                                                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                                                    className="fas fa-chevron-down text-slate-400 group-hover:text-brand-teal transition-colors"
+                                                ></motion.i>
+                                                <span className="font-semibold text-brand-dark">{module.title}</span>
+                                            </div>
+                                            <div className="text-sm text-slate-500">
+                                                {module.lessons?.length || 0} lessons
+                                            </div>
+                                        </div>
+                                        
+                                        <AnimatePresence>
+                                            {isExpanded && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: "auto", opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                    className="overflow-hidden bg-slate-50/50"
+                                                >
+                                                    <div className="px-5 pb-5 pt-2 space-y-3">
+                                                        {module.lessons?.map((lesson: any) => (
+                                                            <div key={lesson.id} className="flex items-center gap-3 text-sm text-slate-600 pl-8">
+                                                                <i className="far fa-play-circle text-brand-teal/60"></i>
+                                                                <span>{lesson.title}</span>
+                                                                <span className="ml-auto text-xs text-slate-400">
+                                                                    {lesson.duration ? Math.floor(lesson.duration/60) + "m" : "5m"}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                        {(!module.lessons || module.lessons.length === 0) && (
+                                                            <p className="text-xs text-slate-400 pl-8 italic">No lessons in this module yet.</p>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
-                                    <div className="text-sm text-slate-500">
-                                        {module.lessons?.length || 0} lessons
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </Reveal>
