@@ -17,7 +17,11 @@ export class AiService {
   async generateCourseOutline(topic: string, level: string = 'Beginner') {
     try {
       const response = await firstValueFrom<any>(
-        this.httpService.post(`${this.aiUrl}/api/v1/course/generate`, { topic, level })
+        this.httpService.post(
+          `${this.aiUrl}/api/v1/course/generate`, 
+          { topic, level },
+          { timeout: 60000 } // 60 seconds timeout
+        )
       );
       return response.data;
     } catch (error) {
