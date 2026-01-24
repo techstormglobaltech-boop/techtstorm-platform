@@ -13,7 +13,7 @@ export default async function MenteeDashboard() {
 
   if (!dashboardData) return null;
 
-  const { user, jumpBackCourse, recommendations, totalCompletedLessons, streak } = dashboardData;
+  const { user = {}, jumpBackCourse, recommendations = [], totalCompletedLessons = 0, streak = 0 } = dashboardData;
   
   // Use first 3 meetings
   const upcomingMeetings = meetings.slice(0, 3);
