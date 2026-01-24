@@ -221,6 +221,8 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
         onConfirm={handleConfirmEnroll}
         title="Confirm Enrollment"
         message={`Are you sure you want to enroll in "${course.title}"? You will get instant access to all course materials.`}
+        confirmText="Enroll Now"
+        variant="teal"
       />
     </>
   );

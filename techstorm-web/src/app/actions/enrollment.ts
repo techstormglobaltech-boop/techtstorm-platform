@@ -17,9 +17,10 @@ export async function enrollInCourse(courseId: string): Promise<{ success?: bool
       alreadyEnrolled: result.alreadyEnrolled ?? false 
     };
   } catch (error: any) {
-    if (error.message.includes("401")) return { error: "UNAUTHORIZED" };
-    console.error("Enrollment error:", error);
-    return { error: "Failed to enroll" };
+    console.error("Enrollment Action Error:", error.message); // Log the real error
+    if (error.message.includes("401") || error.message.includes("Unauthorized")) return { error: "UNAUTHORIZED" };
+    
+    return { error: error.message || "Failed to enroll" };
   }
 }
 
