@@ -8,14 +8,6 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      
-      // Force http for localhost, otherwise use the request protocol
-      const isLocal = nextUrl.hostname === "localhost" || nextUrl.hostname === "127.0.0.1";
-      const protocol = isLocal ? "http:" : nextUrl.protocol;
-      
-      const host = nextUrl.host || 'localhost:3000';
-      const baseUrl = `${protocol}//${host}`;
-      
       const userRole = auth?.user?.role as string;
       
       const isUrl = (path: string) => nextUrl.pathname.startsWith(path);
@@ -31,21 +23,18 @@ export const authConfig = {
 
         // Role-based protection
         if (isAdminPage && userRole !== UserRole.ADMIN) {
-          return Response.redirect(new URL("/", baseUrl));
+           return Response.redirect(new URL("/", nextUrl));
         }
         if (isMentorPage && userRole !== UserRole.MENTOR && userRole !== UserRole.ADMIN) {
-          return Response.redirect(new URL("/", baseUrl));
+           return Response.redirect(new URL("/", nextUrl));
         }
         if (isMenteePage && userRole !== UserRole.MENTEE && userRole !== UserRole.ADMIN) {
-          return Response.redirect(new URL("/", baseUrl));
+           return Response.redirect(new URL("/", nextUrl));
         }
-        
-        // Learn page allows Mentee, Mentor, and Admin
         return true;
       }
 
-      // If logged in and on a public page like login, register or the root home page, 
-      // redirect them to their respective dashboard.
+      // If logged in and on a public page, redirect to dashboard
       const isPublicActionPage = nextUrl.pathname === "/login" || 
                                  nextUrl.pathname === "/register" ||
                                  nextUrl.pathname === "/";
@@ -55,7 +44,7 @@ export const authConfig = {
         if (userRole === UserRole.ADMIN) redirectUrl = "/admin";
         else if (userRole === UserRole.MENTOR) redirectUrl = "/mentor";
         
-        return Response.redirect(new URL(redirectUrl, baseUrl));
+        return Response.redirect(new URL(redirectUrl, nextUrl));
       }
 
       return true;
