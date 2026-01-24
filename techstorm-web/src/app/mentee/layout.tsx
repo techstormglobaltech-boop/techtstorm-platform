@@ -1,5 +1,6 @@
 import MenteeLayoutClient from "@/components/mentee/MenteeLayoutClient";
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "My Portal | TechStorm Global",
@@ -11,10 +12,20 @@ export default async function MenteeLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("MenteeLayout Auth Error:", error);
+    redirect("/login");
+  }
+
+  if (!session?.user) {
+    redirect("/login");
+  }
 
   return (
-    <MenteeLayoutClient user={session?.user}>
+    <MenteeLayoutClient user={session.user}>
         {children}
     </MenteeLayoutClient>
   );
