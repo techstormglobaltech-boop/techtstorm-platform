@@ -55,10 +55,13 @@ async def generate_course(request: CourseRequest):
     Create a detailed course outline for: "{request.topic}" at a "{request.level}" level.
     
     Instructions:
-    - Create a structure with Modules and Lessons (titles and descriptions).
-    - **DEFAULT BEHAVIOR:** Do NOT include 'video_url', 'quiz', or 'assignment' unless the user's prompt explicitly asks for them (e.g., words like "interactive", "with quizzes", "with videos", "complete course", "full curriculum").
-    - If the user just asks for a topic (e.g., "Python course"), provide ONLY modules and text descriptions.
-    - STRICTLY respect the user's constraints.
+    - Create a structure with Modules and Lessons.
+    - **CRITICAL:** Analyze the user's topic request carefully.
+      - If the user mentions "videos", "youtube", "clips", include RELEVANT 'video_url' fields (use search placeholders if needed, e.g., 'https://www.youtube.com/results?search_query=topic').
+      - If the user mentions "quiz", "test", "assessment", include a 'quiz' object for relevant lessons.
+      - If the user mentions "assignment", "homework", "project", include an 'assignment' object.
+      - If the user says "comprehensive", "full", or "interactive", include ALL (videos, quizzes, assignments) where appropriate.
+    - If strictly no extra features are requested, provide a standard outline but YOU ARE ALLOWED to add them if they enhance the learning experience significantly.
 
     The response must be a valid JSON object strictly following this structure:
     {{
@@ -71,20 +74,20 @@ async def generate_course(request: CourseRequest):
                     {{
                         "title": "Lesson Title",
                         "description": "Short lesson description",
-                        "video_url": "https://youtube.com/watch?v=... (Optional - null if none)",
+                        "video_url": "Valid YouTube URL or search link (Optional - null if none)",
                         "quiz": {{
                             "title": "Quiz Title",
                             "questions": [
                                 {{
                                     "text": "Question text?",
-                                    "options": ["Option A", "Option B"],
+                                    "options": ["Option A", "Option B", "Option C"],
                                     "correct_answer": "Option A"
                                 }}
                             ]
                         }} (Optional - null if none),
                         "assignment": {{
                             "title": "Assignment Title",
-                            "description": "Instructions..."
+                            "description": "Detailed instructions..."
                         }} (Optional - null if none)
                     }}
                 ]
