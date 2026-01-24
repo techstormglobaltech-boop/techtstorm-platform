@@ -92,7 +92,7 @@ export default async function MentorDashboard() {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                    {stats?.recentEnrollments.map((row, i) => (
+                    {stats?.recentEnrollments.map((row: any, i: number) => (
                         <tr key={i} className="hover:bg-slate-50 transition-colors">
                             <td className="p-4 pl-6 font-medium text-brand-dark">
                                 <div>{row.user.name || "Student"}</div>

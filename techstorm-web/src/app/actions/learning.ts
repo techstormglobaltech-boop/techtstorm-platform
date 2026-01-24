@@ -24,3 +24,21 @@ export async function markLessonComplete(lessonId: string, completed: boolean = 
     return { error: "Failed to update progress" };
   }
 }
+
+export async function getMyCourses() {
+  try {
+    return await fetchApi("/students/my-courses");
+  } catch (error) {
+    console.error("Failed to fetch my courses:", error);
+    return [];
+  }
+}
+
+export async function getMenteeDashboardData() {
+  try {
+    return await fetchApi("/students/dashboard");
+  } catch (error) {
+    console.error("Failed to fetch mentee dashboard data:", error);
+    return null;
+  }
+}

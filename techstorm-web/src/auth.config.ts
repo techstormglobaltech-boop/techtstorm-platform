@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { UserRole } from "@/types/user";
  
 export const authConfig = {
   pages: {
@@ -15,7 +16,7 @@ export const authConfig = {
       const host = nextUrl.host || 'localhost:3000';
       const baseUrl = `${protocol}//${host}`;
       
-      const userRole = auth?.user?.role;
+      const userRole = auth?.user?.role as string;
       
       const isUrl = (path: string) => nextUrl.pathname.startsWith(path);
       
@@ -29,13 +30,13 @@ export const authConfig = {
         if (!isLoggedIn) return false;
 
         // Role-based protection
-        if (isAdminPage && userRole !== "ADMIN") {
+        if (isAdminPage && userRole !== UserRole.ADMIN) {
           return Response.redirect(new URL("/", baseUrl));
         }
-        if (isMentorPage && userRole !== "MENTOR" && userRole !== "ADMIN") {
+        if (isMentorPage && userRole !== UserRole.MENTOR && userRole !== UserRole.ADMIN) {
           return Response.redirect(new URL("/", baseUrl));
         }
-        if (isMenteePage && userRole !== "MENTEE" && userRole !== "ADMIN") {
+        if (isMenteePage && userRole !== UserRole.MENTEE && userRole !== UserRole.ADMIN) {
           return Response.redirect(new URL("/", baseUrl));
         }
         
@@ -51,8 +52,8 @@ export const authConfig = {
 
       if (isLoggedIn && isPublicActionPage) {
         let redirectUrl = "/mentee";
-        if (userRole === "ADMIN") redirectUrl = "/admin";
-        else if (userRole === "MENTOR") redirectUrl = "/mentor";
+        if (userRole === UserRole.ADMIN) redirectUrl = "/admin";
+        else if (userRole === UserRole.MENTOR) redirectUrl = "/mentor";
         
         return Response.redirect(new URL(redirectUrl, baseUrl));
       }
@@ -64,7 +65,7 @@ export const authConfig = {
         session.user.id = token.sub;
       }
       if (token.role && session.user) {
-        session.user.role = token.role as "ADMIN" | "MENTOR" | "MENTEE";
+        session.user.role = token.role as UserRole;
       }
       if (token.accessToken && session.user) {
         session.user.accessToken = token.accessToken as string;
@@ -74,7 +75,7 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
-        token.accessToken = user.accessToken;
+        token.accessToken = (user as any).accessToken;
       }
       return token;
     }

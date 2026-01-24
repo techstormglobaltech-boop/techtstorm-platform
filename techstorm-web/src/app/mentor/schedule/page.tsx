@@ -14,7 +14,7 @@ export default async function SchedulePage() {
   ]);
 
   // Only allow scheduling for published courses
-  const publishedCourses = courses.filter(c => c.status === "PUBLISHED");
+  const publishedCourses = courses.filter((c: any) => c.status === "PUBLISHED");
 
   return (
     <div className="space-y-8">

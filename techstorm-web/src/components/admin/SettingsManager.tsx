@@ -8,6 +8,7 @@ import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { updateGlobalSettings } from "@/app/actions/settings";
 import { motion, AnimatePresence } from "framer-motion";
+import { UserRole } from "@/types/user";
 
 interface SettingsManagerProps {
   initialAdmins: any[];
@@ -79,7 +80,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const result = await createUser({ ...adminData, role: "ADMIN" });
+    const result = await createUser({ ...adminData, role: UserRole.ADMIN });
     setIsSubmitting(false);
 
     if (result.success) {

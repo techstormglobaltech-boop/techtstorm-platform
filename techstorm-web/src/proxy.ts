@@ -7,7 +7,7 @@ const { auth } = NextAuth({
   trustHost: true,
 });
 
-export default async function middleware(req: any) {
+export default async function proxy(req: any) {
   const host = req.headers.get("host");
   const isLocalhost = host?.includes("localhost") || host?.includes("127.0.0.1");
 

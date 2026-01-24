@@ -104,7 +104,7 @@ export default async function MenteeDashboard() {
                     <Link href="/courses" className="text-sm text-brand-teal font-medium hover:underline">Explore All</Link>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
-                    {recommendations.map((course, i) => (
+                    {recommendations.map((course: any, i: number) => (
                         <Link key={course.id} href={`/courses/${course.id}`}>
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer group h-full flex flex-col">
                                 <div className="h-32 bg-slate-200 rounded-lg mb-4 relative overflow-hidden">
@@ -139,7 +139,7 @@ export default async function MenteeDashboard() {
                     {upcomingMeetings.length === 0 ? (
                         <p className="text-sm text-slate-400 italic">No upcoming sessions.</p>
                     ) : (
-                        upcomingMeetings.map((meeting, i) => (
+                        upcomingMeetings.map((meeting: any, i: number) => (
                             <div key={i} className="flex gap-4 items-start pb-4 border-b border-slate-50 last:border-0 last:pb-0">
                                 <div className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center text-lg bg-brand-teal/10 text-brand-teal">
                                     <i className={`fas ${meeting.menteeId ? 'fa-user-friends' : 'fa-chalkboard-teacher'}`}></i>
@@ -163,7 +163,7 @@ export default async function MenteeDashboard() {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                 <h3 className="font-bold text-brand-dark mb-4">Achievements</h3>
                 <div className="grid grid-cols-3 gap-2">
-                    {achievements.map((badge, i) => (
+                    {achievements.map((badge: any, i: number) => (
                         <div key={i} className={`flex flex-col items-center text-center p-3 rounded-lg ${!badge.unlockedAt ? 'bg-slate-50 opacity-60' : 'bg-slate-50'}`}>
                             <div className={`text-2xl mb-2 ${badge.unlockedAt ? badge.color.replace('bg-', 'text-') : 'text-slate-300'}`}>
                                 <i className={`fas ${badge.icon}`}></i>

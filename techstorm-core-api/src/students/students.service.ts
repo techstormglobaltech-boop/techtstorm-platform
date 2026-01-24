@@ -359,4 +359,113 @@ export class StudentsService {
       },
     });
   }
+
+  async getMyCourses(userId: string) {
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { userId },
+      include: {
+        course: {
+          include: {
+            instructor: { select: { name: true } },
+            modules: {
+              include: {
+                lessons: {
+                  include: {
+                    userProgress: { where: { userId } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return enrollments.map((e) => {
+      const course = e.course;
+      let totalLessons = 0;
+      let completedLessons = 0;
+
+      course.modules.forEach((mod) => {
+        mod.lessons.forEach((lesson) => {
+          totalLessons++;
+          if (lesson.userProgress.length > 0 && lesson.userProgress[0].isCompleted) {
+            completedLessons++;
+          }
+        });
+      });
+
+      const progress =
+        totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100);
+
+      return {
+        id: course.id,
+        title: course.title,
+        image: course.image,
+        instructor: course.instructor,
+        progress,
+        totalLessons,
+        completedLessons,
+      };
+    });
+  }
+
+  async getMenteeDashboardData(userId: string) {
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { userId },
+      include: {
+        course: {
+          include: {
+            modules: {
+              include: {
+                lessons: {
+                  include: {
+                    userProgress: { where: { userId } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    let totalLessons = 0;
+    let completedLessons = 0;
+
+    const courses = enrollments.map((e) => {
+      const course = e.course;
+      let courseTotal = 0;
+      let courseCompleted = 0;
+
+      course.modules.forEach((mod) => {
+        mod.lessons.forEach((lesson) => {
+          courseTotal++;
+          totalLessons++;
+          if (lesson.userProgress.length > 0 && lesson.userProgress[0].isCompleted) {
+            courseCompleted++;
+            completedLessons++;
+          }
+        });
+      });
+
+      const progress =
+        courseTotal === 0 ? 0 : Math.round((courseCompleted / courseTotal) * 100);
+
+      return {
+        id: course.id,
+        title: course.title,
+        progress,
+      };
+    });
+
+    return {
+      totalCourses: enrollments.length,
+      totalLessons,
+      completedLessons,
+      overallProgress:
+        totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100),
+      courses,
+    };
+  }
 }

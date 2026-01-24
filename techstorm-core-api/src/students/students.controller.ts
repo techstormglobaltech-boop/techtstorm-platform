@@ -51,4 +51,14 @@ export class StudentsController {
   getEnrolledCourses(@Request() req) {
     return this.studentsService.getEnrolledCourses(req.user.userId);
   }
+
+  @Get('my-courses')
+  getMyCourses(@Request() req) {
+    return this.studentsService.getMyCourses(req.user.userId);
+  }
+
+  @Get('dashboard')
+  getMenteeDashboardData(@Request() req) {
+    return this.studentsService.getMenteeDashboardData(req.user.userId);
+  }
 }

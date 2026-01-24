@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { createUser, deleteUser, updateUser, toggleUserStatus } from "@/app/actions/user-management";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { UserRole } from "@/types/user";
 
 interface MentorsManagerProps {
   initialMentors: any[];
@@ -18,7 +19,7 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
   
   // Form State
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [editFormData, setEditFormData] = useState({ id: "", name: "", email: "", role: "MENTOR" });
+  const [editFormData, setEditFormData] = useState({ id: "", name: "", email: "", role: UserRole.MENTOR });
 
   const filteredMentors = initialMentors.filter(mentor => 
     mentor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,7 +57,7 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
       id: mentor.id,
       name: mentor.name || "",
       email: mentor.email,
-      role: mentor.role
+      role: mentor.role as UserRole
     });
     setIsEditModalOpen(true);
   };
@@ -68,7 +69,7 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
     const result = await updateUser(editFormData.id, { 
       name: editFormData.name, 
       email: editFormData.email, 
-      role: editFormData.role as any 
+      role: editFormData.role 
     });
     
     setIsSubmitting(false);
@@ -88,7 +89,7 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
     e.preventDefault();
     setIsSubmitting(true);
     
-    const result = await createUser({ ...formData, role: "MENTOR" });
+    const result = await createUser({ ...formData, role: UserRole.MENTOR });
     
     setIsSubmitting(false);
     
@@ -306,16 +307,15 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                        <select 
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                            value={editFormData.role}
-                            onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}
-                        >
-                            <option value="MENTOR">Mentor</option>
-                            <option value="MENTEE">Mentee</option>
-                            <option value="ADMIN">Admin</option>
-                        </select>
-                    </div>
+                                                        <select 
+                                                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
+                                                            value={editFormData.role}
+                                                            onChange={(e) => setEditFormData({...editFormData, role: e.target.value as UserRole})}
+                                                        >
+                                                            <option value={UserRole.MENTOR}>Mentor</option>
+                                                            <option value={UserRole.MENTEE}>Mentee</option>
+                                                            <option value={UserRole.ADMIN}>Admin</option>
+                                                        </select>                    </div>
                     <div className="pt-2 flex gap-3">
                         <button 
                             type="button" 

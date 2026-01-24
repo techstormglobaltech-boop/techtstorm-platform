@@ -1,16 +1,12 @@
 import SettingsManager from "@/components/admin/SettingsManager";
-import { getUsers } from "@/app/actions/user-management";
 import { auth } from "@/auth";
+import { getUsers } from "@/app/actions/user-management";
 import { getGlobalSettings } from "@/app/actions/settings";
-
-export const metadata = {
-  title: "TechStorm Admin | Settings",
-  description: "Configure platform settings and account preferences.",
-};
+import { UserRole } from "@/types/user";
 
 export default async function SettingsPage() {
   const [admins, session, globalSettings] = await Promise.all([
-    getUsers("ADMIN"),
+    getUsers(UserRole.ADMIN),
     auth(),
     getGlobalSettings()
   ]);
@@ -18,7 +14,7 @@ export default async function SettingsPage() {
   return (
     <SettingsManager 
         initialAdmins={admins} 
-        currentUser={session?.user} 
+        currentUser={session?.user as any} 
         initialGlobalSettings={globalSettings}
     />
   );

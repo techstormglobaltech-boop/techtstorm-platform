@@ -137,7 +137,7 @@ export default async function Home() {
 
               {courses.length > 0 ? (
                 <div className="grid md:grid-cols-3 gap-8">
-                    {courses.map((course, index) => (
+                    {courses.map((course: any, index: number) => (
                         <Reveal key={course.id} width="100%" delay={index * 100}>
                             <div className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col h-full group">
                                 <div className="relative h-56">
@@ -197,7 +197,7 @@ export default async function Home() {
 
               {events.length > 0 ? (
                 <div className="grid md:grid-cols-3 gap-8">
-                    {events.map((event, index) => {
+                    {events.map((event: any, index: number) => {
                         const eventDate = new Date(event.date);
                         const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
                         const day = eventDate.getDate();

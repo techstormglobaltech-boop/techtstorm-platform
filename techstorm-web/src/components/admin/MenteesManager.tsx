@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { createUser, deleteUser, updateUser, toggleUserStatus } from "@/app/actions/user-management";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { UserRole } from "@/types/user";
 
 interface MenteesManagerProps {
   initialMentees: any[];
@@ -18,7 +19,7 @@ export default function MenteesManager({ initialMentees }: MenteesManagerProps) 
   
   // Form State
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [editFormData, setEditFormData] = useState({ id: "", name: "", email: "", role: "MENTEE" });
+  const [editFormData, setEditFormData] = useState({ id: "", name: "", email: "", role: UserRole.MENTEE });
 
   const filteredMentees = initialMentees.filter(mentee => 
     mentee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,7 +57,7 @@ export default function MenteesManager({ initialMentees }: MenteesManagerProps) 
       id: mentee.id,
       name: mentee.name || "",
       email: mentee.email,
-      role: mentee.role
+      role: mentee.role as UserRole
     });
     setIsEditModalOpen(true);
   };
@@ -68,7 +69,7 @@ export default function MenteesManager({ initialMentees }: MenteesManagerProps) 
     const result = await updateUser(editFormData.id, { 
       name: editFormData.name, 
       email: editFormData.email, 
-      role: editFormData.role as any 
+      role: editFormData.role 
     });
     
     setIsSubmitting(false);
@@ -88,7 +89,7 @@ export default function MenteesManager({ initialMentees }: MenteesManagerProps) 
     e.preventDefault();
     setIsSubmitting(true);
     
-    const result = await createUser({ ...formData, role: "MENTEE" });
+    const result = await createUser({ ...formData, role: UserRole.MENTEE });
     
     setIsSubmitting(false);
     
@@ -309,11 +310,11 @@ export default function MenteesManager({ initialMentees }: MenteesManagerProps) 
                                 <select 
                                     className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
                                     value={editFormData.role}
-                                    onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}
+                                    onChange={(e) => setEditFormData({...editFormData, role: e.target.value as UserRole})}
                                 >
-                                    <option value="MENTEE">Mentee</option>
-                                    <option value="MENTOR">Mentor</option>
-                                    <option value="ADMIN">Admin</option>
+                                    <option value={UserRole.MENTEE}>Mentee</option>
+                                    <option value={UserRole.MENTOR}>Mentor</option>
+                                    <option value={UserRole.ADMIN}>Admin</option>
                                 </select>
                             </div>
                             <div className="pt-2 flex gap-3">
