@@ -83,6 +83,17 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse, 
                         </span>
                     </Link>
                 ))}
+
+                {/* Mobile Logout Link */}
+                <button 
+                    onClick={() => logout()}
+                    className={`w-full flex items-center md:hidden py-4 text-slate-400 hover:bg-white/5 hover:text-red-400 border-r-4 border-transparent transition-all whitespace-nowrap ${isCollapsed ? 'justify-center px-0' : 'px-6'}`}
+                >
+                    <i className="fas fa-sign-out-alt w-6 text-center text-lg"></i>
+                    <span className={`ml-3 transition-opacity duration-300 ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100'}`}>
+                        Logout
+                    </span>
+                </button>
             </nav>
           </div>
 

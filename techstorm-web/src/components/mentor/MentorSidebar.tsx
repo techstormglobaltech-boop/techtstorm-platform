@@ -66,6 +66,15 @@ export default function MentorSidebar({ isOpen, onClose, isCollapsed, toggleColl
                         {!isCollapsed && <span className="ml-3 transition-opacity duration-300">{item.label}</span>}
                     </Link>
                 ))}
+
+                {/* Mobile Logout Link */}
+                <button 
+                    onClick={() => logout()}
+                    className={`w-full flex items-center md:hidden ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-3 rounded-lg text-sm font-medium transition-colors text-red-500 hover:bg-red-50`}
+                >
+                    <i className="fas fa-sign-out-alt w-6 text-center text-lg"></i>
+                    {!isCollapsed && <span className="ml-3 truncate">Logout</span>}
+                </button>
             </nav>
         </div>
 
