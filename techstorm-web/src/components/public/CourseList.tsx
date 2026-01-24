@@ -14,13 +14,13 @@ export default function CourseList({ initialCourses }: CourseListProps) {
   const categoryParam = searchParams.get("category");
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("All");
+  const [filterCategory, setFilterCategory] = useState(categoryParam || "All");
 
   useEffect(() => {
-    if (categoryParam) {
+    if (categoryParam && categoryParam !== filterCategory) {
       setFilterCategory(categoryParam);
     }
-  }, [categoryParam]);
+  }, [categoryParam]); // Sync if URL changes later
 
   const filteredCourses = initialCourses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase());

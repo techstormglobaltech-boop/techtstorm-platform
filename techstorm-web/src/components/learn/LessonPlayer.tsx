@@ -74,7 +74,10 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
     await markLessonComplete(activeLesson.id, newStatus);
     
     // Optimistic update locally
-    activeLesson.userProgress = [{ isCompleted: newStatus }];
+    setActiveLesson((prev: any) => ({
+      ...prev,
+      userProgress: [{ isCompleted: newStatus }]
+    }));
     setIsCompleting(false);
     router.refresh(); // Refresh to update server data (progress bar etc)
   };

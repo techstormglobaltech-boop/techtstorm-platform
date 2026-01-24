@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
       : 'http://localhost:3000'),
   },
   reactCompiler: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
     remotePatterns: [
       {

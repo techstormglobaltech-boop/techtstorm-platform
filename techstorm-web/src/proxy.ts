@@ -1,13 +1,13 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 const { auth } = NextAuth({
   ...authConfig,
   trustHost: true,
 });
 
-export default async function proxy(req: any) {
+export default async function proxy(req: NextRequest) {
   const host = req.headers.get("host");
   const isLocalhost = host?.includes("localhost") || host?.includes("127.0.0.1");
 
