@@ -27,7 +27,7 @@ export default async function MenteeDashboard() {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-brand-dark to-slate-800 rounded-2xl p-8 text-white flex flex-col md:flex-row items-center justify-between shadow-lg relative overflow-hidden">
         <div className="relative z-10">
-            <h1 className="text-3xl font-bold mb-2">Welcome back, {user.name || "Learner"}! 👋</h1>
+            <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name || "Learner"}! 👋</h1>
             <p className="text-slate-300 mb-6 max-w-lg">You have completed <strong>{totalCompletedLessons}</strong> lessons so far. Keep up the momentum to earn your "Consistent Learner" badge!</p>
             <Link href="/mentee/my-courses" className="bg-brand-amber text-brand-dark font-bold px-6 py-3 rounded-lg hover:bg-[#e6a200] transition-colors inline-block">
                 Continue Learning
