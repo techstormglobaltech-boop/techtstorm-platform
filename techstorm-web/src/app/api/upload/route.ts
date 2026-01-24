@@ -1,49 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase Admin Client (Server-side only)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// MOCK UPLOAD HANDLER (Frontend-Only Mode)
+// Since we are running in "No Backend" mode on Vercel, we simulate a successful upload.
+// In a real production scenario, this would connect to S3, Cloudinary, or Supabase.
 
 export async function POST(req: NextRequest) {
   try {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Log that we received a request (for debugging)
     const formData = await req.formData();
     const file = formData.get("file") as File;
-
+    
     if (!file) {
       return NextResponse.json({ error: "No files received." }, { status: 400 });
     }
-
-    const buffer = Buffer.from(await file.arrayBuffer());
     
-    // Create unique filename: timestamp_sanitized-name
-    const filename = `${Date.now()}_${file.name.replaceAll(" ", "_")}`;
+    console.log(`[MOCK UPLOAD] Simulating upload for file: ${file.name}`);
 
-    // Upload to Supabase 'techstorm-public' bucket
-    const { data, error } = await supabase
-      .storage
-      .from("techstorm-public")
-      .upload(filename, buffer, {
-        contentType: file.type,
-        upsert: false
-      });
-
-    if (error) {
-      console.error("Supabase Storage Error:", error);
-      throw error;
-    }
-
-    // Construct Public URL
-    const { data: { publicUrl } } = supabase
-      .storage
-      .from("techstorm-public")
-      .getPublicUrl(filename);
+    // Return a random placeholder image to simulate a successful upload
+    // Using a reliable placeholder service
+    const mockUrl = `https://images.unsplash.com/photo-1531297425939-a5c988b0a94b?auto=format&fit=crop&w=800&q=80`;
 
     return NextResponse.json({ 
       success: true, 
-      url: publicUrl 
+      url: mockUrl 
     });
 
   } catch (error) {
