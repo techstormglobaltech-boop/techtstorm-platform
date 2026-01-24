@@ -104,7 +104,7 @@ export default async function MenteeDashboard() {
                     <Link href="/courses" className="text-sm text-brand-teal font-medium hover:underline">Explore All</Link>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
-                    {recommendations.map((course: any, i: number) => (
+                    {recommendations?.map((course: any, i: number) => (
                         <Link key={course.id} href={`/courses/${course.id}`}>
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer group h-full flex flex-col">
                                 <div className="h-32 bg-slate-200 rounded-lg mb-4 relative overflow-hidden">
