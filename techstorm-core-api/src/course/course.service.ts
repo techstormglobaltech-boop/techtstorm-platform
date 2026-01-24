@@ -120,6 +120,9 @@ export class CourseService {
           }
         }
       });
+    }, {
+      maxWait: 10000, // Wait up to 10s for transaction to start
+      timeout: 20000  // Allow transaction to run for 20s
     });
   }
 
