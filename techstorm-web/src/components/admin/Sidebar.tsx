@@ -1,4 +1,5 @@
 "use client";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -15,8 +16,14 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse, user }: SidebarProps) {
   const pathname = usePathname();
-
+  const [isPending, startTransition] = useTransition();
   const isActive = (path: string) => pathname === path;
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logout();
+    });
+  };
 
   return (
     <>
@@ -86,12 +93,13 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse, 
 
                 {/* Mobile Logout Link */}
                 <button 
-                    onClick={() => logout()}
-                    className={`w-full flex items-center md:hidden py-4 text-slate-400 hover:bg-white/5 hover:text-red-400 border-r-4 border-transparent transition-all whitespace-nowrap ${isCollapsed ? 'justify-center px-0' : 'px-6'}`}
+                    onClick={handleLogout}
+                    disabled={isPending}
+                    className={`w-full flex items-center md:hidden py-4 text-slate-400 hover:bg-white/5 hover:text-red-400 border-r-4 border-transparent transition-all whitespace-nowrap disabled:opacity-50 ${isCollapsed ? 'justify-center px-0' : 'px-6'}`}
                 >
-                    <i className="fas fa-sign-out-alt w-6 text-center text-lg"></i>
+                    <i className={`fas ${isPending ? 'fa-spinner fa-spin' : 'fa-sign-out-alt'} w-6 text-center text-lg`}></i>
                     <span className={`ml-3 transition-opacity duration-300 ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100'}`}>
-                        Logout
+                        {isPending ? 'Logging out...' : 'Logout'}
                     </span>
                 </button>
             </nav>
@@ -105,7 +113,13 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse, 
             {!isCollapsed && (
                 <div className="overflow-hidden">
                     <p className="text-sm font-semibold truncate">{user?.name || "Admin User"}</p>
-                    <button onClick={() => logout()} className="text-xs text-slate-400 hover:text-white transition-colors">Logout</button>
+                    <button 
+                        onClick={handleLogout}
+                        disabled={isPending}
+                        className="text-xs text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+                    >
+                        {isPending ? 'Logging out...' : 'Logout'}
+                    </button>
                 </div>
             )}
           </div>

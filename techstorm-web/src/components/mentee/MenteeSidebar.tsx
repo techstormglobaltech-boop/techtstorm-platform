@@ -1,4 +1,5 @@
 "use client";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -15,7 +16,14 @@ interface SidebarProps {
 
 export default function MenteeSidebar({ isOpen, isCollapsed, onClose, onToggleCollapse, user }: SidebarProps) {
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
   const isActive = (path: string) => pathname === path;
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logout();
+    });
+  };
 
   return (
     <>
@@ -81,11 +89,12 @@ export default function MenteeSidebar({ isOpen, isCollapsed, onClose, onToggleCo
                 
                 {/* Mobile Logout Link */}
                 <button 
-                    onClick={() => logout()}
-                    className={`w-full flex items-center md:hidden ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-3 rounded-lg text-sm font-medium transition-colors text-red-500 hover:bg-red-50`}
+                    onClick={handleLogout}
+                    disabled={isPending}
+                    className={`w-full flex items-center md:hidden ${isCollapsed ? 'justify-center px-0' : 'px-4'} py-3 rounded-lg text-sm font-medium transition-colors text-red-500 hover:bg-red-50 disabled:opacity-50`}
                 >
-                    <i className="fas fa-sign-out-alt w-6 text-center text-lg"></i>
-                    {!isCollapsed && <span className="ml-3 truncate">Logout</span>}
+                    <i className={`fas ${isPending ? 'fa-spinner fa-spin' : 'fa-sign-out-alt'} w-6 text-center text-lg`}></i>
+                    {!isCollapsed && <span className="ml-3 truncate">{isPending ? 'Logging out...' : 'Logout'}</span>}
                 </button>
             </nav>
 
@@ -128,11 +137,12 @@ export default function MenteeSidebar({ isOpen, isCollapsed, onClose, onToggleCo
                 </div>
             )}
             <button 
-                onClick={() => logout()}
-                className="text-slate-400 hover:text-red-500 transition-colors"
+                onClick={handleLogout}
+                disabled={isPending}
+                className="text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
                 title="Logout"
             >
-                <i className="fas fa-sign-out-alt"></i>
+                <i className={`fas ${isPending ? 'fa-spinner fa-spin' : 'fa-sign-out-alt'}`}></i>
             </button>
         </div>
       </div>
