@@ -20,7 +20,7 @@ export default function GalleryGrid({ initialItems }: GalleryGridProps) {
       <section className="container mx-auto px-5 pb-20">
         <Reveal width="100%">
             <div className="flex justify-center flex-wrap gap-3 mb-12">
-                {["all", "events", "mentorship", "showcase"].map((cat) => (
+                {["all", "events", "mentors", "volunteers"].map((cat) => (
                     <button 
                         key={cat}
                         onClick={() => setFilter(cat)}
@@ -30,7 +30,7 @@ export default function GalleryGrid({ initialItems }: GalleryGridProps) {
                             : 'border-slate-200 text-text-gray hover:border-brand-teal hover:text-brand-teal'
                         }`}
                     >
-                        {cat === 'all' ? 'All Moments' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        {cat === 'all' ? 'All Impactors' : cat.charAt(0).toUpperCase() + cat.slice(1)}
                     </button>
                 ))}
             </div>

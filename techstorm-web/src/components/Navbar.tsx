@@ -28,7 +28,7 @@ export default function Navbar() {
                 <li><Link href="/" className="font-medium text-brand-dark hover:text-brand-teal transition-colors">Home</Link></li>
                 <li><Link href="/about" className="font-medium text-brand-dark hover:text-brand-teal transition-colors">About</Link></li>
                 <li><Link href="/services" className="font-medium text-brand-dark hover:text-brand-teal transition-colors">Services</Link></li>
-                <li><Link href="/gallery" className="font-medium text-brand-dark hover:text-brand-teal transition-colors">Gallery</Link></li>
+                <li><Link href="/gallery" className="font-medium text-brand-dark hover:text-brand-teal transition-colors">Our Impactors</Link></li>
                 
                 {/* Dropdown */}
                 <li 
@@ -58,7 +58,7 @@ export default function Navbar() {
                 <li><Link href="/" className="text-xl font-medium text-brand-dark block w-full" onClick={() => setIsOpen(false)}>Home</Link></li>
                 <li><Link href="/about" className="text-xl font-medium text-brand-dark block w-full" onClick={() => setIsOpen(false)}>About</Link></li>
                 <li><Link href="/services" className="text-xl font-medium text-brand-dark block w-full" onClick={() => setIsOpen(false)}>Services</Link></li>
-                <li><Link href="/gallery" className="text-xl font-medium text-brand-dark block w-full" onClick={() => setIsOpen(false)}>Gallery</Link></li>
+                <li><Link href="/gallery" className="text-xl font-medium text-brand-dark block w-full" onClick={() => setIsOpen(false)}>Our Impactors</Link></li>
                 
                 <li className="w-full">
                     <div className="flex justify-between items-center text-xl font-medium text-brand-dark cursor-pointer py-2" onClick={() => setDropdownOpen(!dropdownOpen)}>

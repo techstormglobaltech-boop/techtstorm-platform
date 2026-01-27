@@ -157,8 +157,8 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                         onChange={(e) => setForm({...form, category: e.target.value})}
                     >
                         <option value="events">Events</option>
-                        <option value="mentorship">Mentorship</option>
-                        <option value="showcase">Showcase</option>
+                        <option value="mentors">Mentors</option>
+                        <option value="volunteers">Volunteers</option>
                     </select>
                 </div>
 

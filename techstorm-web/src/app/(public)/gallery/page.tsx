@@ -5,7 +5,7 @@ import GalleryGrid from "@/components/public/GalleryGrid";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Gallery | TechStorm Global",
+  title: "Our Impactors | TechStorm Global",
   description: "Explore our moments, events, and community highlights.",
 };
 
