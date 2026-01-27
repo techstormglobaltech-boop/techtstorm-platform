@@ -1,9 +1,13 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class MeetingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async create(userId: string, role: string, data: any) {
     if (role !== 'MENTOR' && role !== 'ADMIN') throw new ForbiddenException();
@@ -97,10 +101,22 @@ export class MeetingsService {
   }
 
   async updateStatus(userId: string, meetingId: string, status: string, link?: string) {
-    return this.prisma.meeting.update({
+    const meeting = await this.prisma.meeting.update({
       where: { id: meetingId, mentorId: userId },
-      data: { status: status as any, link }
+      data: { status: status as any, link },
+      include: { mentee: true },
     });
+
+    if (status === 'SCHEDULED' && meeting.mentee?.email) {
+      await this.mailService.sendMeetingScheduledEmail(
+        meeting.mentee.email,
+        meeting.title,
+        meeting.startTime,
+        meeting.link,
+      );
+    }
+
+    return meeting;
   }
 
   async remove(userId: string, role: string, id: string) {

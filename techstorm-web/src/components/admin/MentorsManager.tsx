@@ -4,6 +4,8 @@ import { createUser, deleteUser, updateUser, toggleUserStatus } from "@/app/acti
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { UserRole } from "@/types/user";
+import Modal from "@/components/ui/Modal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface MentorsManagerProps {
   initialMentors: any[];
@@ -16,9 +18,10 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   
   // Form State
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
   const [editFormData, setEditFormData] = useState({ id: "", name: "", email: "", role: UserRole.MENTOR });
 
   const filteredMentors = initialMentors.filter(mentor => 
@@ -26,17 +29,22 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
     mentor.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to remove this mentor?")) {
-      const result = await deleteUser(id);
-      if (result.success) {
-        toast.success("Mentor removed");
-        startTransition(() => {
-            router.refresh();
-        });
-      } else {
-        toast.error("Failed to delete mentor");
-      }
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    
+    const result = await deleteUser(deleteId);
+    if (result.success) {
+      toast.success("Mentor removed");
+      setDeleteId(null);
+      startTransition(() => {
+          router.refresh();
+      });
+    } else {
+      toast.error("Failed to delete mentor");
     }
   };
 
@@ -94,9 +102,9 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
     setIsSubmitting(false);
     
     if (result.success) {
-      toast.success("Mentor added successfully!");
+      toast.success("Invitation sent successfully!");
       setIsModalOpen(false);
-      setFormData({ name: "", email: "", password: "" });
+      setFormData({ name: "", email: "" });
       startTransition(() => {
           router.refresh();
       });
@@ -193,7 +201,7 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
                                     <i className={`fas ${mentor.status === 'ACTIVE' ? 'fa-user-slash' : 'fa-user-check'}`}></i>
                                 </button>
                                 <button 
-                                    onClick={() => handleDelete(mentor.id)}
+                                    onClick={() => handleDeleteClick(mentor.id)}
                                     className="text-red-400 hover:text-red-600 p-2 rounded hover:bg-red-50 transition-colors"
                                     title="Delete User"
                                 >
@@ -213,129 +221,123 @@ export default function MentorsManager({ initialMentors }: MentorsManagerProps) 
       </div>
 
       {/* Add Mentor Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h3 className="font-bold text-lg text-brand-dark">Add New Mentor</h3>
-                    <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                        <i className="fas fa-times"></i>
-                    </button>
-                </div>
-                <form onSubmit={handleCreate} className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                        <input 
-                            type="text" 
-                            required
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                            value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                        <input 
-                            type="email" 
-                            required
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                            value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Password (Optional)</label>
-                        <input 
-                            type="password" 
-                            placeholder="Default: password123"
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        />
-                    </div>
-                    <div className="pt-2 flex gap-3">
-                        <button 
-                            type="button" 
-                            onClick={() => setIsModalOpen(false)}
-                            className="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit" 
-                            disabled={isSubmitting}
-                            className="flex-1 py-2.5 bg-brand-teal text-white font-medium rounded-lg hover:bg-[#006066] transition-colors disabled:opacity-50"
-                        >
-                            {isSubmitting ? "Adding..." : "Add Mentor"}
-                        </button>
-                    </div>
-                </form>
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title="Invite New Mentor"
+      >
+        <form onSubmit={handleCreate} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input 
+                    type="text" 
+                    required
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal outline-none"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Enter full name"
+                />
             </div>
-        </div>
-      )}
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input 
+                    type="email" 
+                    required
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal outline-none"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="Enter email address"
+                />
+            </div>
+            <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg flex gap-2 items-start">
+                <i className="fas fa-info-circle mt-0.5"></i>
+                <p>The mentor will receive an email invitation to set their own password and activate their account.</p>
+            </div>
+            <div className="pt-2 flex gap-3">
+                <button 
+                    type="button" 
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="flex-1 py-2.5 bg-brand-teal text-white font-medium rounded-lg hover:bg-[#006066] transition-colors disabled:opacity-50 shadow-lg shadow-brand-teal/20"
+                >
+                    {isSubmitting ? "Sending..." : "Send Invitation"}
+                </button>
+            </div>
+        </form>
+      </Modal>
 
       {/* Edit Mentor Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h3 className="font-bold text-lg text-brand-dark">Edit Mentor</h3>
-                    <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                        <i className="fas fa-times"></i>
-                    </button>
-                </div>
-                <form onSubmit={handleUpdate} className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                        <input 
-                            type="text" 
-                            required
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                            value={editFormData.name}
-                            onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                        <input 
-                            type="email" 
-                            required
-                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                            value={editFormData.email}
-                            onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                                                        <select 
-                                                            className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal"
-                                                            value={editFormData.role}
-                                                            onChange={(e) => setEditFormData({...editFormData, role: e.target.value as UserRole})}
-                                                        >
-                                                            <option value={UserRole.MENTOR}>Mentor</option>
-                                                            <option value={UserRole.MENTEE}>Mentee</option>
-                                                            <option value={UserRole.ADMIN}>Admin</option>
-                                                        </select>                    </div>
-                    <div className="pt-2 flex gap-3">
-                        <button 
-                            type="button" 
-                            onClick={() => setIsEditModalOpen(false)}
-                            className="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit" 
-                            disabled={isSubmitting}
-                            className="flex-1 py-2.5 bg-brand-teal text-white font-medium rounded-lg hover:bg-[#006066] transition-colors disabled:opacity-50"
-                        >
-                            {isSubmitting ? "Saving..." : "Save Changes"}
-                        </button>
-                    </div>
-                </form>
+      <Modal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        title="Edit Mentor"
+      >
+        <form onSubmit={handleUpdate} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input 
+                    type="text" 
+                    required
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal outline-none"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                />
             </div>
-        </div>
-      )}
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input 
+                    type="email" 
+                    required
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal outline-none"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                <select 
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal outline-none"
+                    value={editFormData.role}
+                    onChange={(e) => setEditFormData({...editFormData, role: e.target.value as UserRole})}
+                >
+                    <option value={UserRole.MENTOR}>Mentor</option>
+                    <option value={UserRole.MENTEE}>Mentee</option>
+                    <option value={UserRole.ADMIN}>Admin</option>
+                </select>
+            </div>
+            <div className="pt-2 flex gap-3">
+                <button 
+                    type="button" 
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="flex-1 py-2.5 bg-brand-teal text-white font-medium rounded-lg hover:bg-[#006066] transition-colors disabled:opacity-50 shadow-lg shadow-brand-teal/20"
+                >
+                    {isSubmitting ? "Saving..." : "Save Changes"}
+                </button>
+            </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal 
+        isOpen={!!deleteId} 
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
+        title="Remove Mentor?"
+        message="This action cannot be undone. The mentor account and their data will be permanently removed."
+      />
 
     </div>
   );

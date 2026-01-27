@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function QuickActions() {
   const actions = [
     { label: "New Event", icon: "fa-calendar-plus", href: "/admin/events", color: "bg-brand-teal text-white hover:bg-[#006066]" },
-    { label: "Invite User", icon: "fa-user-plus", href: "/invite", color: "bg-slate-100 text-slate-700 hover:bg-slate-200" },
+    { label: "Invite User", icon: "fa-user-plus", href: "/admin/invite", color: "bg-slate-100 text-slate-700 hover:bg-slate-200" },
     { label: "System Settings", icon: "fa-cog", href: "/admin/settings", color: "bg-slate-100 text-slate-700 hover:bg-slate-200" },
   ];
 

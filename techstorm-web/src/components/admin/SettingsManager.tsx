@@ -23,6 +23,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmMaintenanceOpen, setIsConfirmMaintenanceOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Platform Settings State
   const [globalSettings, setGlobalSettings] = useState({
@@ -68,7 +69,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
   };
 
   // New Admin Form State
-  const [adminData, setAdminData] = useState({ name: "", email: "", password: "" });
+  const [adminData, setAdminData] = useState({ name: "", email: "" });
 
   const tabs = [
     { id: "general", name: "General Settings", icon: "fa-cog" },
@@ -84,9 +85,9 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
     setIsSubmitting(false);
 
     if (result.success) {
-      toast.success("New administrator added!");
+      toast.success("Invitation sent successfully!");
       setIsModalOpen(false);
-      setAdminData({ name: "", email: "", password: "" });
+      setAdminData({ name: "", email: "" });
       startTransition(() => router.refresh());
     } else {
       toast.error(result.error || "Failed to add admin");
@@ -105,17 +106,24 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
     if (id === currentUser?.id) {
         toast.error("You cannot delete your own account.");
         return;
     }
-    if (confirm("Are you sure? This will permanently remove this administrator.")) {
-      const result = await deleteUser(id);
-      if (result.success) {
-        toast.success("Administrator removed");
-        startTransition(() => router.refresh());
-      }
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+
+    const result = await deleteUser(deleteId);
+    if (result.success) {
+      toast.success("Administrator removed");
+      setDeleteId(null);
+      startTransition(() => router.refresh());
+    } else {
+        toast.error("Failed to delete admin");
     }
   };
 
@@ -280,7 +288,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
                                                 </button>
                                                 <button 
                                                     disabled={admin.id === currentUser?.id}
-                                                    onClick={() => handleDelete(admin.id)}
+                                                    onClick={() => handleDeleteClick(admin.id)}
                                                     className="text-slate-300 hover:text-red-500 disabled:opacity-0 transition-colors p-1"
                                                     title="Delete"
                                                 >
@@ -362,7 +370,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title="Add New Administrator"
+        title="Invite New Administrator"
       >
         <form onSubmit={handleCreateAdmin} className="space-y-4">
             <div className="space-y-1">
@@ -373,6 +381,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
                     className="w-full p-2.5 border border-slate-200 rounded-xl outline-none focus:border-brand-teal transition-colors"
                     value={adminData.name}
                     onChange={(e) => setAdminData({...adminData, name: e.target.value})}
+                    placeholder="Enter full name"
                 />
             </div>
             <div className="space-y-1">
@@ -383,23 +392,17 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
                     className="w-full p-2.5 border border-slate-200 rounded-xl outline-none focus:border-brand-teal transition-colors"
                     value={adminData.email}
                     onChange={(e) => setAdminData({...adminData, email: e.target.value})}
+                    placeholder="Enter email address"
                 />
             </div>
-            <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Initial Password</label>
-                <input 
-                    type="password" 
-                    placeholder="Minimum 6 characters"
-                    required 
-                    className="w-full p-2.5 border border-slate-200 rounded-xl outline-none focus:border-brand-teal transition-colors"
-                    value={adminData.password}
-                    onChange={(e) => setAdminData({...adminData, password: e.target.value})}
-                />
+            <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg flex gap-2 items-start">
+                <i className="fas fa-info-circle mt-0.5"></i>
+                <p>The user will receive an email invitation to set their own password and activate their account.</p>
             </div>
             <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 bg-slate-50 text-slate-500 font-bold rounded-xl hover:bg-slate-100">Cancel</button>
                 <button type="submit" disabled={isSubmitting} className="flex-1 py-3 bg-brand-teal text-white font-bold rounded-xl hover:bg-[#006066] shadow-lg shadow-brand-teal/20 disabled:opacity-50">
-                    {isSubmitting ? "Adding..." : "Add Admin"}
+                    {isSubmitting ? "Sending Invite..." : "Send Invitation"}
                 </button>
             </div>
         </form>
@@ -417,6 +420,14 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
                       ? "This will restore public access to the platform for all users." 
                       : "Warning: This will block public access to the platform for all non-admin users. Students and mentors will see the maintenance page."
                   }
+              />
+              
+              <ConfirmModal 
+                isOpen={!!deleteId} 
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Remove Administrator?"
+                message="This action cannot be undone. This admin will lose all access to the dashboard."
               />
       
     </div>

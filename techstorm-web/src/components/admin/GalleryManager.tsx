@@ -5,6 +5,7 @@ import Image from "next/image";
 import { addGalleryImage, deleteGalleryImage } from "@/app/actions/gallery";
 import toast from "react-hot-toast";
 import Modal from "@/components/ui/Modal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface GalleryManagerProps {
   initialImages: any[];
@@ -16,6 +17,7 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -74,12 +76,17 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this image?")) return;
-    const result = await deleteGalleryImage(id);
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    const result = await deleteGalleryImage(deleteId);
     if (result.success) {
         toast.success("Deleted");
-        setImages(images.filter(img => img.id !== id));
+        setImages(images.filter(img => img.id !== deleteId));
+        setDeleteId(null);
     } else {
         toast.error("Failed to delete");
     }
@@ -102,7 +109,7 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                     <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-slate-100">
                         <Image src={img.url} alt={img.title || "Gallery Image"} fill className="object-cover group-hover:scale-105 transition-transform" />
                         <button 
-                            onClick={() => handleDelete(img.id)}
+                            onClick={() => handleDeleteClick(img.id)}
                             className="absolute top-2 right-2 bg-white/90 text-red-500 w-8 h-8 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
                         >
                             <i className="fas fa-trash"></i>
@@ -176,6 +183,14 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                 </div>
             </form>
         </Modal>
+
+        <ConfirmModal 
+            isOpen={!!deleteId}
+            onClose={() => setDeleteId(null)}
+            onConfirm={confirmDelete}
+            title="Delete Image?"
+            message="Are you sure you want to delete this image from the gallery? This cannot be undone."
+        />
     </div>
   );
 }

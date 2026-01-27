@@ -11,19 +11,43 @@ import { useRouter } from "next/navigation";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [email, setEmail] = useState("");
   
   // Custom wrapper to handle the server action result
   const handleRegister = async (prevState: any, formData: FormData) => {
     const result = await register(formData);
     if (result.success) {
-      // Redirect to login or auto-login
-      router.push("/login?registered=true");
-      return { success: result.success };
+      setEmail(formData.get("email") as string);
+      setIsSuccess(true);
+      return { success: result.message };
     }
     return { error: result.error };
   };
 
   const [state, dispatch, isPending] = useActionState(handleRegister, undefined);
+
+  if (isSuccess) {
+    return (
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg border border-slate-100 text-center">
+         <div className="h-16 w-16 bg-teal-100 rounded-full mx-auto flex items-center justify-center mb-4">
+            <i className="fas fa-envelope text-2xl text-teal-600"></i>
+         </div>
+         <h2 className="text-2xl font-bold text-slate-800">Check your email</h2>
+         <p className="text-slate-500">
+           We've sent a verification link to <span className="font-semibold text-slate-700">{email}</span>.
+         </p>
+         <p className="text-sm text-slate-400 mt-4">
+           Please click the link in the email to activate your account.
+         </p>
+         <div className="pt-6">
+           <Link href="/login" className="text-brand-teal hover:underline font-medium">
+             Back to Login
+           </Link>
+         </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg border border-slate-100">
@@ -94,9 +118,6 @@ export default function RegisterForm() {
         <div className="flex h-8 items-end space-x-1" aria-live="polite" aria-atomic="true">
           {state?.error && (
             <p className="text-sm text-red-500">{state.error}</p>
-          )}
-          {state?.success && (
-            <p className="text-sm text-green-500">{state.success}</p>
           )}
         </div>
       </form>
