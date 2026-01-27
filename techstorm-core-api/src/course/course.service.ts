@@ -126,9 +126,10 @@ export class CourseService {
     });
   }
 
-  async update(id: string, userId: string, data: any) {
+  async update(id: string, userId: string, data: any, role?: string) {
+    const whereClause = role === 'ADMIN' ? { id } : { id, instructorId: userId };
     return this.prisma.course.update({
-      where: { id, instructorId: userId },
+      where: whereClause,
       data: {
         title: data.title,
         description: data.description,
@@ -139,8 +140,9 @@ export class CourseService {
     });
   }
 
-  async toggleStatus(id: string, userId: string) {
-    const course = await this.prisma.course.findUnique({ where: { id, instructorId: userId } });
+  async toggleStatus(id: string, userId: string, role?: string) {
+    const whereClause = role === 'ADMIN' ? { id } : { id, instructorId: userId };
+    const course = await this.prisma.course.findUnique({ where: whereClause });
     if (!course) throw new NotFoundException();
 
     const newStatus = course.status === CourseStatus.PUBLISHED ? CourseStatus.DRAFT : CourseStatus.PUBLISHED;
@@ -150,8 +152,9 @@ export class CourseService {
     });
   }
 
-  async remove(id: string, userId: string) {
-    return this.prisma.course.delete({ where: { id, instructorId: userId } });
+  async remove(id: string, userId: string, role?: string) {
+    const whereClause = role === 'ADMIN' ? { id } : { id, instructorId: userId };
+    return this.prisma.course.delete({ where: whereClause });
   }
 
   async getSubmissions(courseId: string) {

@@ -29,17 +29,17 @@ export class CourseController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Request() req, @Body() data: any) {
-    return this.courseService.update(id, req.user.userId, data);
+    return this.courseService.update(id, req.user.userId, data, req.user.role);
   }
 
   @Post(':id/toggle-status')
   toggleStatus(@Param('id') id: string, @Request() req) {
-    return this.courseService.toggleStatus(id, req.user.userId);
+    return this.courseService.toggleStatus(id, req.user.userId, req.user.role);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
-    return this.courseService.remove(id, req.user.userId);
+    return this.courseService.remove(id, req.user.userId, req.user.role);
   }
 
   @Get(':id/submissions')
