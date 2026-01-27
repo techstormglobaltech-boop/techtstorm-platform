@@ -72,7 +72,7 @@ model Course {
   status      CourseStatus @default(DRAFT)
   
   instructorId String
-  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id])
+  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
 
   modules     Module[]
   enrollments Enrollment[]
@@ -94,10 +94,10 @@ model Meeting {
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   
   mentorId    String
-  mentor      User     @relation("MentorMeetings", fields: [mentorId], references: [id])
+  mentor      User     @relation("MentorMeetings", fields: [mentorId], references: [id], onDelete: Cascade)
 
   menteeId    String?
-  mentee      User?    @relation("MenteeMeetings", fields: [menteeId], references: [id])
+  mentee      User?    @relation("MenteeMeetings", fields: [menteeId], references: [id], onDelete: Cascade)
 
   status      MeetingStatus @default(SCHEDULED)
 
