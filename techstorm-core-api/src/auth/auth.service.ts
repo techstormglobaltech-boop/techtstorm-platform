@@ -104,7 +104,7 @@ export class AuthService {
     }
   }
 
-  async setupAccount(token: string, password: string, name?: string) {
+  async setupAccount(token: string, password: string, name?: string, profileData?: any) {
     try {
       const payload = this.jwtService.verify(token);
       if (payload.type !== 'staff_invite') throw new BadRequestException('Invalid invitation token');
@@ -121,6 +121,13 @@ export class AuthService {
           password: hashedPassword,
           emailVerified: new Date(),
           ...(name && { name }),
+          // Profile Enrichment
+          ...(profileData?.image && { image: profileData.image }),
+          ...(profileData?.title && { title: profileData.title }),
+          ...(profileData?.bio && { bio: profileData.bio }),
+          ...(profileData?.linkedinUrl && { linkedinUrl: profileData.linkedinUrl }),
+          ...(profileData?.githubUrl && { githubUrl: profileData.githubUrl }),
+          ...(profileData?.twitterUrl && { twitterUrl: profileData.twitterUrl }),
         },
       });
 
@@ -133,6 +140,7 @@ export class AuthService {
           email: updatedUser.email,
           name: updatedUser.name,
           role: updatedUser.role,
+          image: updatedUser.image
         }
       };
 

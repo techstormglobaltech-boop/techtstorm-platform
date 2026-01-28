@@ -18,8 +18,9 @@ export class AuthController {
   }
 
   @Post('setup-account')
-  async setupAccount(@Body() body: { token: string; password: string; name?: string }) {
-    return this.authService.setupAccount(body.token, body.password, body.name);
+  async setupAccount(@Body() body: { token: string; password: string; name?: string; image?: string; title?: string; bio?: string; linkedinUrl?: string; githubUrl?: string; twitterUrl?: string }) {
+    const { token, password, name, ...profileData } = body;
+    return this.authService.setupAccount(token, password, name, profileData);
   }
 
   @Post('login')
