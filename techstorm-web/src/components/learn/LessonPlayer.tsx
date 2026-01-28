@@ -80,6 +80,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   };
 
   const handleComplete = async () => {
+    if (!activeLesson) return;
     setIsCompleting(true);
     const isCurrentlyCompleted = activeLesson.userProgress?.[0]?.isCompleted;
     const newStatus = !isCurrentlyCompleted; // Toggle
@@ -87,10 +88,13 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
     await markLessonComplete(activeLesson.id, newStatus);
     
     // Optimistic update locally
-    setActiveLesson((prev: any) => ({
-      ...prev,
-      userProgress: [{ isCompleted: newStatus }]
-    }));
+    setActiveLesson((prev: any) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          userProgress: [{ isCompleted: newStatus }]
+        };
+    });
     setIsCompleting(false);
     
     if (newStatus) {
