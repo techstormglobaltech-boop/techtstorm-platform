@@ -1,12 +1,13 @@
-import { Injectable, InternalServerErrorException, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class AiService implements OnModuleInit {
+export class AiService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AiService.name);
   private readonly aiUrl: string;
+  private keepAliveInterval: NodeJS.Timeout;
 
   constructor(
     private readonly httpService: HttpService,
@@ -16,16 +17,25 @@ export class AiService implements OnModuleInit {
   }
 
   onModuleInit() {
-    this.wakeUpAiEngine();
+    this.pingAiEngine(); // Initial wake-up
+    
+    // Schedule keep-alive ping every 14 minutes (Render sleeps after 15 mins)
+    this.keepAliveInterval = setInterval(() => {
+      this.pingAiEngine();
+    }, 14 * 60 * 1000); 
   }
 
-  private wakeUpAiEngine() {
-    this.logger.log(`Pinging AI Engine at ${this.aiUrl} to wake it up...`);
-    // Fire and forget - trigger the request but don't wait for the full response
-    // Render services wake up upon receiving a connection attempt
-    this.httpService.get(this.aiUrl, { timeout: 3000 }).subscribe({
-      next: () => this.logger.log('AI Engine responded and is awake.'),
-      error: (err) => this.logger.log(`AI Engine wake-up signal sent. It may be booting up. (Status: ${err.message})`)
+  onModuleDestroy() {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+    }
+  }
+
+  private pingAiEngine() {
+    this.logger.log(`[Keep-Alive] Pinging AI Engine at ${this.aiUrl}...`);
+    this.httpService.get(this.aiUrl, { timeout: 5000 }).subscribe({
+      next: () => this.logger.debug('AI Engine is active.'),
+      error: (err) => this.logger.warn(`AI Engine unreachable/sleeping. Wake-up signal sent. (${err.message})`)
     });
   }
 
