@@ -48,6 +48,14 @@ model User {
   password      String?   // Hashed
   role          UserRole  @default(MENTEE)
   status        UserStatus @default(ACTIVE)
+  
+  // Profile Fields
+  title         String?   // e.g. "Senior Software Engineer"
+  bio           String?   @db.Text
+  linkedinUrl   String?
+  githubUrl     String?
+  twitterUrl    String?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
