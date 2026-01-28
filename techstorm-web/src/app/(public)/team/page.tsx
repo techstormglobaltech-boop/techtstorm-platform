@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
+import { getPublicMentors } from "@/app/actions/profile";
 
-export default function Team() {
+export default async function Team() {
+  const mentors = await getPublicMentors();
+
   return (
     <>
       {/* HERO SECTION */}
@@ -19,7 +22,7 @@ export default function Team() {
         </div>
       </section>
 
-      {/* LEADERSHIP SECTION */}
+      {/* LEADERSHIP SECTION (Hardcoded for primary figures) */}
       <section className="py-20 container mx-auto px-5">
         <div className="text-center mb-12">
             <Reveal>
@@ -50,7 +53,7 @@ export default function Team() {
         </div>
       </section>
 
-      {/* MENTORS SECTION */}
+      {/* MENTORS SECTION (Dynamic from Database) */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-5">
             <div className="text-center mb-12">
@@ -62,31 +65,56 @@ export default function Team() {
                 </Reveal>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {[
-                    { name: "Emmanuel K.", role: "AI Expert", desc: "Senior ML Engineer specializing in NLP and Computer Vision. Passionate about ethical AI.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
-                    { name: "Ama Serwaa", role: "Data Science", desc: "Data Analyst at a Fintech unicorn. She loves teaching SQL and Python for data viz.", img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
-                    { name: "John Doe", role: "Full Stack", desc: "Full Stack Developer with expertise in React and Node.js. Builds scalable web apps.", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
-                    { name: "Grace Tetteh", role: "Cloud / DevOps", desc: "AWS Certified Solutions Architect. Helps students master cloud infrastructure.", img: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" }
-                ].map((mentor, index) => (
-                    <Reveal key={index} width="100%" delay={index * 100}>
-                        <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group border border-slate-100 h-full">
-                            <div className="relative h-64">
-                                <Image src={mentor.img} alt={mentor.name} fill className="object-cover" />
-                                <span className="absolute top-4 right-4 bg-brand-amber text-brand-dark text-xs font-bold px-3 py-1 rounded-full">{mentor.role}</span>
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-lg font-bold text-brand-dark mb-2">{mentor.name}</h3>
-                                <p className="text-text-gray text-sm mb-4 leading-relaxed">{mentor.desc}</p>
-                                <div className="flex gap-3">
-                                    <a href="#" className="w-8 h-8 rounded-full bg-slate-100 text-brand-teal flex items-center justify-center hover:bg-brand-teal hover:text-white transition-colors"><i className="fab fa-linkedin-in"></i></a>
-                                    <a href="#" className="w-8 h-8 rounded-full bg-slate-100 text-brand-teal flex items-center justify-center hover:bg-brand-teal hover:text-white transition-colors"><i className="fab fa-github"></i></a>
+            {mentors.length > 0 ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {mentors.map((mentor: any, index: number) => (
+                        <Reveal key={mentor.id} width="100%" delay={index * 100}>
+                            <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group border border-slate-100 flex flex-col h-full">
+                                <div className="relative h-64 bg-slate-100">
+                                    {mentor.image ? (
+                                        <Image src={mentor.image} alt={mentor.name} fill className="object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-4xl text-slate-300">
+                                            <i className="fas fa-user"></i>
+                                        </div>
+                                    )}
+                                    <span className="absolute top-4 right-4 bg-brand-amber text-brand-dark text-xs font-bold px-3 py-1 rounded-full">
+                                        {mentor.title || 'Mentor'}
+                                    </span>
+                                </div>
+                                <div className="p-6 flex-1 flex flex-col">
+                                    <h3 className="text-lg font-bold text-brand-dark mb-2">{mentor.name}</h3>
+                                    <p className="text-text-gray text-sm mb-4 leading-relaxed line-clamp-3">
+                                        {mentor.bio || 'Professional tech mentor dedicated to student success.'}
+                                    </p>
+                                    
+                                    <div className="flex gap-3 mt-auto pt-4">
+                                        {mentor.linkedinUrl && (
+                                            <a href={mentor.linkedinUrl} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-slate-100 text-brand-teal flex items-center justify-center hover:bg-brand-teal hover:text-white transition-colors">
+                                                <i className="fab fa-linkedin-in"></i>
+                                            </a>
+                                        )}
+                                        {mentor.githubUrl && (
+                                            <a href={mentor.githubUrl} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-slate-100 text-brand-teal flex items-center justify-center hover:bg-brand-teal hover:text-white transition-colors">
+                                                <i className="fab fa-github"></i>
+                                            </a>
+                                        )}
+                                        {mentor.twitterUrl && (
+                                            <a href={mentor.twitterUrl} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-slate-100 text-brand-teal flex items-center justify-center hover:bg-brand-teal hover:text-white transition-colors">
+                                                <i className="fab fa-twitter"></i>
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Reveal>
-                ))}
-            </div>
+                        </Reveal>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-10 text-slate-400 italic">
+                    Our mentor community is growing. Check back soon!
+                </div>
+            )}
         </div>
       </section>
 
