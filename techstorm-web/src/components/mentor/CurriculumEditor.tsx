@@ -4,11 +4,13 @@ import {
     createModule, deleteModule, 
     createLesson, updateLesson, deleteLesson,
     saveQuiz, addQuestion, deleteQuestion,
-    saveAssignment, generateQuizFromAI 
+    saveAssignment, generateQuizFromAI,
+    addLessonAttachment, deleteLessonAttachment
 } from "@/app/actions/course-edit";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import FileUploader from "@/components/ui/FileUploader";
 import toast from "react-hot-toast";
 
 interface CurriculumEditorProps {
@@ -201,6 +203,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
     setLessonForm({
         title: lesson.title,
         description: lesson.description || "",
+        videoType: lesson.videoType || "YOUTUBE",
         videoUrl: lesson.videoUrl || "",
         duration: lesson.duration || "",
         isFree: lesson.isFree || false
@@ -212,6 +215,16 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
     await updateLesson(editingLessonId, lessonForm, course.id);
     setEditingLessonId(null);
     router.refresh();
+  };
+
+  const handleAttachmentUpload = async (url: string, fileData: any) => {
+    if (!editingLessonId) return;
+    await addLessonAttachment(editingLessonId, { url, ...fileData }, course.id);
+    router.refresh();
+  };
+
+  const handleVideoUpload = (url: string) => {
+    setLessonForm((prev: any) => ({ ...prev, videoUrl: url }));
   };
 
   return (
@@ -274,7 +287,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                         </div>
 
                                         {activeLessonTab === "content" && (
-                                            <div className="space-y-3">
+                                            <div className="space-y-4">
                                                 <input 
                                                     type="text" 
                                                     className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
@@ -289,14 +302,89 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                                     value={lessonForm.description}
                                                     onChange={(e) => setLessonForm({...lessonForm, description: e.target.value})}
                                                 />
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <input 
-                                                        type="text" 
-                                                        className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
-                                                        placeholder="Video URL (YouTube)"
-                                                        value={lessonForm.videoUrl}
-                                                        onChange={(e) => setLessonForm({...lessonForm, videoUrl: e.target.value})}
+                                                
+                                                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Video Content</p>
+                                                    <div className="flex gap-4 mb-3">
+                                                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                                            <input 
+                                                                type="radio" 
+                                                                name="videoType" 
+                                                                value="YOUTUBE"
+                                                                checked={lessonForm.videoType === "YOUTUBE"}
+                                                                onChange={() => setLessonForm({...lessonForm, videoType: "YOUTUBE", videoUrl: ""})}
+                                                            />
+                                                            YouTube Link
+                                                        </label>
+                                                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                                            <input 
+                                                                type="radio" 
+                                                                name="videoType" 
+                                                                value="UPLOAD"
+                                                                checked={lessonForm.videoType === "UPLOAD"}
+                                                                onChange={() => setLessonForm({...lessonForm, videoType: "UPLOAD", videoUrl: ""})}
+                                                            />
+                                                            Upload Video
+                                                        </label>
+                                                    </div>
+
+                                                    {lessonForm.videoType === "YOUTUBE" ? (
+                                                        <input 
+                                                            type="text" 
+                                                            className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
+                                                            placeholder="https://www.youtube.com/watch?v=..."
+                                                            value={lessonForm.videoUrl}
+                                                            onChange={(e) => setLessonForm({...lessonForm, videoUrl: e.target.value})}
+                                                        />
+                                                    ) : (
+                                                        <div className="space-y-2">
+                                                            <FileUploader 
+                                                                label=""
+                                                                bucket="course-content"
+                                                                accept="video/*"
+                                                                defaultValue={lessonForm.videoUrl}
+                                                                onUploadComplete={handleVideoUpload}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Attachments & Resources</p>
+                                                    
+                                                    {lesson.attachments && lesson.attachments.length > 0 && (
+                                                        <div className="space-y-2 mb-4">
+                                                            {lesson.attachments.map((file: any) => (
+                                                                <div key={file.id} className="flex justify-between items-center bg-slate-50 p-2 rounded text-sm">
+                                                                    <div className="flex items-center gap-2 truncate">
+                                                                        <i className="fas fa-file-alt text-slate-400"></i>
+                                                                        <a href={file.url} target="_blank" className="text-brand-teal hover:underline truncate max-w-[200px]">{file.name}</a>
+                                                                    </div>
+                                                                    <button 
+                                                                        onClick={async () => {
+                                                                            if (confirm("Delete this attachment?")) {
+                                                                                await deleteLessonAttachment(file.id, course.id);
+                                                                                router.refresh();
+                                                                            }
+                                                                        }}
+                                                                        className="text-red-400 hover:text-red-600 px-2"
+                                                                    >
+                                                                        <i className="fas fa-times"></i>
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    <FileUploader 
+                                                        label="Add Attachment (PDF, Doc, Zip)"
+                                                        bucket="course-content"
+                                                        accept=".pdf,.doc,.docx,.zip,.txt,.ppt,.pptx"
+                                                        onUploadComplete={handleAttachmentUpload}
                                                     />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
                                                     <input 
                                                         type="number" 
                                                         className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
@@ -304,6 +392,14 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                                         value={lessonForm.duration}
                                                         onChange={(e) => setLessonForm({...lessonForm, duration: e.target.value})}
                                                     />
+                                                    <label className="flex items-center gap-2 p-2 border border-slate-200 rounded bg-white text-sm">
+                                                        <input 
+                                                            type="checkbox"
+                                                            checked={lessonForm.isFree}
+                                                            onChange={(e) => setLessonForm({...lessonForm, isFree: e.target.checked})}
+                                                        />
+                                                        Free Preview
+                                                    </label>
                                                 </div>
                                             </div>
                                         )}

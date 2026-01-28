@@ -29,6 +29,16 @@ export class ContentController {
     return this.contentService.updateLesson(req.user.userId, id, body);
   }
 
+  @Post('lessons/:id/attachments')
+  addAttachment(@Request() req, @Param('id') id: string, @Body() body: any) {
+    return this.contentService.addAttachment(req.user.userId, id, body);
+  }
+
+  @Delete('attachments/:id')
+  deleteAttachment(@Request() req, @Param('id') id: string) {
+    return this.contentService.deleteAttachment(req.user.userId, id);
+  }
+
   @Delete('lessons/:id')
   deleteLesson(@Request() req, @Param('id') id: string) {
     return this.contentService.deleteLesson(req.user.userId, id);

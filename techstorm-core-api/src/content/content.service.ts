@@ -72,11 +72,34 @@ export class ContentService {
       data: {
         title: data.title,
         description: data.description,
+        videoType: data.videoType, // Added
         videoUrl: data.videoUrl,
         isFree: data.isFree,
         duration: data.duration ? parseInt(data.duration) : null
       }
     });
+  }
+
+  async addAttachment(userId: string, lessonId: string, fileData: any) {
+    await this.validateLessonOwnership(userId, lessonId);
+    return this.prisma.lessonAttachment.create({
+      data: {
+        lessonId,
+        name: fileData.name,
+        url: fileData.url,
+        type: fileData.type,
+        size: fileData.size
+      }
+    });
+  }
+
+  async deleteAttachment(userId: string, attachmentId: string) {
+    const attachment = await this.prisma.lessonAttachment.findUnique({
+      where: { id: attachmentId },
+      include: { lesson: { include: { module: { include: { course: true } } } } }
+    });
+    if (attachment.lesson.module.course.instructorId !== userId) throw new UnauthorizedException();
+    return this.prisma.lessonAttachment.delete({ where: { id: attachmentId } });
   }
 
   async deleteLesson(userId: string, lessonId: string) {

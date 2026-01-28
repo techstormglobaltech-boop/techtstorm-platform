@@ -48,7 +48,8 @@ export class CourseService {
                     }
                   }
                 },
-                assignments: true
+                assignments: true,
+                attachments: true // Include attachments
               }
             }
           }

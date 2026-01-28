@@ -89,6 +89,29 @@ export async function deleteLesson(lessonId: string, courseId: string) {
   }
 }
 
+export async function addLessonAttachment(lessonId: string, fileData: any, courseId: string) {
+  try {
+    await fetchApi(`/content/lessons/${lessonId}/attachments`, {
+      method: "POST",
+      body: JSON.stringify(fileData),
+    });
+    revalidatePath(`/mentor/courses/${courseId}`);
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to add attachment" };
+  }
+}
+
+export async function deleteLessonAttachment(attachmentId: string, courseId: string) {
+  try {
+    await fetchApi(`/content/attachments/${attachmentId}`, { method: "DELETE" });
+    revalidatePath(`/mentor/courses/${courseId}`);
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to delete attachment" };
+  }
+}
+
 // QUIZ ACTIONS
 export async function saveQuiz(lessonId: string, data: { title: string, id?: string }, courseId: string) {
   try {
