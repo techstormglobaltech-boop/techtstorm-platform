@@ -49,10 +49,10 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   useEffect(() => {
     if (course && !activeLesson) {
         const lesson = findFirstLesson();
-        setActiveLesson(lesson);
-        // Expand the module containing the active lesson
         if (lesson) {
-            const mod = course.modules.find((m: any) => m.lessons.some((l: any) => l.id === lesson.id));
+            setActiveLesson(lesson);
+            // Expand the module containing the active lesson
+            const mod = course.modules?.find((m: any) => m.lessons?.some((l: any) => l?.id === lesson.id));
             if (mod) setExpandedModules([mod.id]);
         }
     }
@@ -419,8 +419,8 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                                 className="overflow-hidden bg-black/20"
                                             >
                                                 {module.lessons.map((lesson: any) => {
-                                                    const isActive = activeLesson.id === lesson.id;
-                                                    const isCompleted = lesson.userProgress?.[0]?.isCompleted;
+                                                    const isActive = activeLesson?.id === lesson?.id;
+                                                    const isCompleted = lesson?.userProgress?.[0]?.isCompleted;
                                                     
                                                     return (
                                                         <div 
