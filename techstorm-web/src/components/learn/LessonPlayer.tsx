@@ -25,20 +25,24 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
 
   // Find first uncompleted lesson or default to first lesson
   const findFirstLesson = () => {
+    if (!course?.modules?.length) return null;
+
+    // 1. Check if a specific lesson is requested via URL
     const requestedLessonId = searchParams.get('lessonId');
     if (requestedLessonId) {
         for (const mod of course.modules) {
-            const found = mod.lessons.find((l: any) => l.id === requestedLessonId);
+            const found = mod.lessons?.find((l: any) => l.id === requestedLessonId);
             if (found) return found;
         }
     }
 
+    // 2. Default logic: First uncompleted
     for (const mod of course.modules) {
-        for (const lesson of mod.lessons) {
+        for (const lesson of (mod.lessons || [])) {
             if (!lesson.userProgress?.[0]?.isCompleted) return lesson;
         }
     }
-    return course.modules[0]?.lessons[0] || null;
+    return course.modules[0]?.lessons?.[0] || null;
   };
 
   // Initialize active lesson on mount
