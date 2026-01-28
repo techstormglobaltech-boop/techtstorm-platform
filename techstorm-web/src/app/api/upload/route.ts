@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
 
-    // Get Public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Get Public URL using Admin client
+    const { data: publicUrlData } = supabaseAdmin.storage
       .from(bucket)
       .getPublicUrl(fileName);
 
     return NextResponse.json({ 
       success: true, 
-      url: publicUrl,
+      url: publicUrlData.publicUrl,
       name: file.name,
       type: file.type,
       size: file.size
