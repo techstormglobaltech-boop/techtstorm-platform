@@ -7,6 +7,7 @@ import LessonQuiz from "./LessonQuiz";
 import { submitAssignment } from "@/app/actions/submissions";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import FileUploader from "@/components/ui/FileUploader";
 
 interface LessonPlayerProps {
   course: any;
@@ -20,6 +21,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isCompleting, setIsCompleting] = useState(false);
   const [submissionContent, setSubmissionContent] = useState("");
+  const [submissionFile, setSubmissionFile] = useState<string | null>(null);
   const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
@@ -65,14 +67,23 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   };
 
   const handleAssignmentSubmit = async (assignmentId: string) => {
-    if (!submissionContent) return;
+    if (!submissionContent && !submissionFile) {
+        toast.error("Please provide text or upload a file.");
+        return;
+    }
     setIsSubmittingAssignment(true);
-    const result = await submitAssignment(assignmentId, submissionContent);
+    // Combine text and file link if both exist
+    const finalContent = submissionFile 
+        ? `${submissionContent}\n\n[Attached File]: ${submissionFile}` 
+        : submissionContent;
+
+    const result = await submitAssignment(assignmentId, finalContent);
     setIsSubmittingAssignment(false);
 
     if (result.success) {
         toast.success("Assignment submitted!");
         setSubmissionContent("");
+        setSubmissionFile(null);
         router.refresh();
     } else {
         toast.error("Failed to submit");
@@ -120,6 +131,8 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   if (!activeLesson) return <div className="flex items-center justify-center h-screen text-slate-500">Loading course content...</div>;
 
   const embedUrl = getEmbedUrl(activeLesson.videoUrl);
+  // Determine if video is a direct upload (Supabase) or YouTube
+  const isDirectVideo = activeLesson.videoType === 'UPLOAD' || (activeLesson.videoUrl && activeLesson.videoUrl.includes('supabase'));
 
   return (
     <div className="flex flex-col h-screen bg-slate-900 overflow-hidden font-sans">
@@ -174,14 +187,23 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
             {/* VIDEO SECTION */}
             <div className="w-full bg-black relative shadow-xl z-20">
                 <div className="aspect-video w-full max-w-6xl mx-auto bg-black flex items-center justify-center relative">
-                    {embedUrl ? (
-                         <iframe 
-                            src={embedUrl} 
-                            className="w-full h-full" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            title={activeLesson.title}
-                         ></iframe>
+                    {activeLesson.videoUrl ? (
+                         isDirectVideo ? (
+                            <video 
+                                src={activeLesson.videoUrl} 
+                                className="w-full h-full"
+                                controls
+                                controlsList="nodownload"
+                            ></video>
+                         ) : (
+                            <iframe 
+                                src={embedUrl || activeLesson.videoUrl} 
+                                className="w-full h-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title={activeLesson.title}
+                            ></iframe>
+                         )
                     ) : (
                         <div className="text-center p-12">
                             <div className="w-24 h-24 bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800">
@@ -203,8 +225,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`pb-1 text-sm font-bold capitalize transition-colors relative whitespace-nowrap ${
-                                activeTab === tab 
+                            className={`pb-1 text-sm font-bold capitalize transition-colors relative whitespace-nowrap ${activeTab === tab 
                                 ? 'text-brand-dark' 
                                 : 'text-slate-400 hover:text-slate-600'
                             }`}
@@ -223,8 +244,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                 <button 
                     onClick={handleComplete}
                     disabled={isCompleting}
-                    className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all transform active:scale-95 ${
-                        activeLesson.userProgress?.[0]?.isCompleted
+                    className={`flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all transform active:scale-95 ${activeLesson.userProgress?.[0]?.isCompleted
                         ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
                         : 'bg-brand-dark text-white hover:bg-slate-800 shadow-lg hover:shadow-xl'
                     }`}
@@ -256,9 +276,38 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                         <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                                         <span className="flex items-center gap-1"><i className="far fa-calendar"></i> Updated recently</span>
                                     </div>
-                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-line bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+                                    <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-line bg-white p-8 rounded-2xl border border-slate-100 shadow-sm mb-8">
                                         {activeLesson.description || "No description available for this lesson."}
                                     </div>
+
+                                    {/* ATTACHMENTS SECTION */}
+                                    {activeLesson.attachments && activeLesson.attachments.length > 0 && (
+                                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                                <i className="fas fa-paperclip text-brand-teal"></i> Lesson Resources
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {activeLesson.attachments.map((file: any) => (
+                                                    <a 
+                                                        key={file.id} 
+                                                        href={file.url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50 transition-all group"
+                                                    >
+                                                        <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center shrink-0">
+                                                            <i className="fas fa-file-alt text-lg"></i>
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-bold text-slate-700 truncate group-hover:text-brand-teal transition-colors">{file.name}</p>
+                                                            <p className="text-xs text-slate-400 uppercase">{file.type?.split('/').pop() || 'FILE'} • Download</p>
+                                                        </div>
+                                                        <i className="fas fa-download ml-auto text-slate-300 group-hover:text-brand-teal"></i>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -301,14 +350,11 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                             {/* Status Check */}
                                             {activeLesson.assignments[0].submissions?.[0] ? (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                    <div className={`p-5 rounded-xl flex items-center gap-4 border ${
-                                                        activeLesson.assignments[0].submissions[0].status === 'GRADED' 
+                                                    <div className={`p-5 rounded-xl flex items-center gap-4 border ${activeLesson.assignments[0].submissions[0].status === 'GRADED' 
                                                         ? 'bg-green-50 border-green-100 text-green-800' 
                                                         : 'bg-amber-50 border-amber-100 text-amber-800'
                                                     }`}>
-                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                                            activeLesson.assignments[0].submissions[0].status === 'GRADED' ? 'bg-green-200' : 'bg-amber-200'
-                                                        }`}>
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activeLesson.assignments[0].submissions[0].status === 'GRADED' ? 'bg-green-200' : 'bg-amber-200'}`}>
                                                             <i className={`fas ${activeLesson.assignments[0].submissions[0].status === 'GRADED' ? 'fa-check' : 'fa-hourglass-half'}`}></i>
                                                         </div>
                                                         <div>
@@ -342,8 +388,16 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                                     <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                                                         <i className="fas fa-paper-plane text-brand-teal"></i> Submit Your Work
                                                     </h4>
-                                                    <p className="text-sm text-slate-500 mb-6">Paste your answer, GitHub link, or Google Doc URL below.</p>
+                                                    <p className="text-sm text-slate-500 mb-6">Type your answer or upload a file (PDF, Doc, Zip).</p>
                                                     
+                                                    <div className="mb-4">
+                                                        <FileUploader 
+                                                            label="Attach File (Optional)" 
+                                                            bucket="submissions"
+                                                            onUploadComplete={(url) => setSubmissionFile(url)}
+                                                        />
+                                                    </div>
+
                                                     <textarea 
                                                         className="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal outline-none mb-4 min-h-[150px] bg-white transition-all resize-y text-slate-700"
                                                         placeholder="Type your submission here..."
@@ -354,7 +408,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                                     <div className="flex justify-end">
                                                         <button 
                                                             onClick={() => handleAssignmentSubmit(activeLesson.assignments[0].id)}
-                                                            disabled={isSubmittingAssignment || !submissionContent}
+                                                            disabled={isSubmittingAssignment || (!submissionContent && !submissionFile)}
                                                             className="bg-brand-teal text-white px-8 py-3 rounded-xl font-bold hover:bg-[#006066] transition-all shadow-md disabled:opacity-50 hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
                                                         >
                                                             {isSubmittingAssignment ? (
@@ -433,8 +487,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                                                 setActiveLesson(lesson); 
                                                                 if(window.innerWidth < 768) setSidebarOpen(false); 
                                                             }}
-                                                            className={`px-5 py-3 flex gap-3 items-start cursor-pointer transition-all border-l-[3px] group ${
-                                                                isActive 
+                                                            className={`px-5 py-3 flex gap-3 items-start cursor-pointer transition-all border-l-[3px] group ${isActive 
                                                                 ? 'bg-brand-teal/10 border-brand-teal' 
                                                                 : 'hover:bg-white/5 border-transparent'
                                                             }`}
