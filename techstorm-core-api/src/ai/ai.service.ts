@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, OnModuleInit, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class AiService {
+export class AiService implements OnModuleInit {
+  private readonly logger = new Logger(AiService.name);
   private readonly aiUrl: string;
 
   constructor(
@@ -12,6 +13,20 @@ export class AiService {
     private readonly configService: ConfigService,
   ) {
     this.aiUrl = this.configService.get<string>('AI_ENGINE_URL') || 'http://localhost:8000';
+  }
+
+  onModuleInit() {
+    this.wakeUpAiEngine();
+  }
+
+  private wakeUpAiEngine() {
+    this.logger.log(`Pinging AI Engine at ${this.aiUrl} to wake it up...`);
+    // Fire and forget - trigger the request but don't wait for the full response
+    // Render services wake up upon receiving a connection attempt
+    this.httpService.get(this.aiUrl, { timeout: 3000 }).subscribe({
+      next: () => this.logger.log('AI Engine responded and is awake.'),
+      error: (err) => this.logger.log(`AI Engine wake-up signal sent. It may be booting up. (Status: ${err.message})`)
+    });
   }
 
   async generateCourseOutline(topic: string, level: string = 'Beginner') {
