@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const bucket = formData.get("bucket") as string || "course-content"; // Default to course bucket
+    const bucket = formData.get("bucket") as string || "course-content"; 
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Create unique file name: timestamp_sanitized-name
+    // Create unique file name
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const fileName = `${timestamp}_${safeName}`;
 
-    // Upload to Supabase
-    const { data, error } = await supabase.storage
+    // Upload to Supabase using Admin client
+    const { data, error } = await supabaseAdmin.storage
       .from(bucket)
       .upload(fileName, file, {
         cacheControl: "3600",
