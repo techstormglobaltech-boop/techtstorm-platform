@@ -115,6 +115,11 @@ model Module {
   lessons  Lesson[]
 }
 
+enum VideoType {
+  YOUTUBE
+  UPLOAD
+}
+
 model Lesson {
   id          String  @id @default(cuid())
   title       String
@@ -123,7 +128,8 @@ model Lesson {
   isFree      Boolean @default(false)
   duration    Int?    // In seconds
   
-  videoUrl    String? // Mux or YouTube URL
+  videoType   VideoType @default(YOUTUBE)
+  videoUrl    String? // Mux or YouTube URL or Supabase Storage URL
   
   moduleId    String
   module      Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
@@ -131,6 +137,20 @@ model Lesson {
   userProgress LessonProgress[]
   quizzes      Quiz[]
   assignments  Assignment[]
+  attachments  LessonAttachment[]
+}
+
+model LessonAttachment {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String   // PDF, DOC, ZIP, etc.
+  size      Int?     // In bytes
+  
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
 }
 
 model Quiz {
