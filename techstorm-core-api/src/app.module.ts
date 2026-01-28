@@ -15,6 +15,7 @@ import { PublicModule } from './public/public.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { MailModule } from './mail/mail.module';
 import { InvitationsModule } from './invitations/invitations.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { InvitationsModule } from './invitations/invitations.module';
     GalleryModule,
     MailModule,
     InvitationsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
