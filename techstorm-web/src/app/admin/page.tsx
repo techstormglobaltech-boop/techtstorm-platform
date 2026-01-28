@@ -8,6 +8,18 @@ import QuickActions from "@/components/admin/dashboard/QuickActions";
 export default async function AdminDashboard() {
   const stats = await getAdminStats();
 
+  if (!stats) {
+    return (
+      <div className="p-10 text-center">
+        <div className="bg-red-50 text-red-600 p-6 rounded-xl border border-red-100 inline-block">
+            <i className="fas fa-exclamation-circle text-3xl mb-3"></i>
+            <h3 className="font-bold text-lg">Dashboard Unavailable</h3>
+            <p>Could not fetch platform statistics. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-8">
         
