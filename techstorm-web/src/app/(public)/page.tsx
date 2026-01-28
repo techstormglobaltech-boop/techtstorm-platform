@@ -38,7 +38,7 @@ export default async function Home() {
                 <Reveal width="100%" delay={300}>
                     <div className="relative group">
                         <Image 
-                            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                            src="/flyer.jpeg" 
                             alt="Mentorship" 
                             width={800} 
                             height={600}
