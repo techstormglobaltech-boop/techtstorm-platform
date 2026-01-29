@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { createUser, deleteUser, toggleUserStatus } from "@/app/actions/user-management";
+import { createUser, deleteUser, toggleUserStatus, updateUser } from "@/app/actions/user-management";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -28,7 +28,7 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
   // Platform Settings State
   const [globalSettings, setGlobalSettings] = useState({
     platformName: initialGlobalSettings?.platformName || "TechStorm Global",
-    supportEmail: initialGlobalSettings?.supportEmail || "hello@techstormglobal.com",
+    supportEmail: initialGlobalSettings?.supportEmail || "Info@techstormglobal.com",
     maintenanceMode: initialGlobalSettings?.maintenanceMode || false,
   });
 
@@ -70,6 +70,60 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
 
   // New Admin Form State
   const [adminData, setAdminData] = useState({ name: "", email: "" });
+
+  // Profile State
+  const [profileData, setProfileData] = useState({
+    name: currentUser?.name || "",
+    image: currentUser?.image || "",
+  });
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    setIsUploadingAvatar(true);
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+        });
+        
+        if (!res.ok) throw new Error("Upload failed");
+        
+        const data = await res.json();
+        setProfileData({ ...profileData, image: data.url });
+        toast.success("Avatar uploaded! Click 'Update Profile' to save.");
+    } catch (error) {
+        console.error(error);
+        toast.error("Failed to upload avatar");
+    } finally {
+        setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!currentUser?.id) return;
+    
+    setIsSubmitting(true);
+    const result = await updateUser(currentUser.id, {
+        name: profileData.name,
+        email: currentUser.email, // Email usually isn't editable here
+        role: currentUser.role,
+        image: profileData.image
+    } as any); // Type casting as quick fix, better to update type definition
+    setIsSubmitting(false);
+
+    if (result.success) {
+        toast.success("Profile updated successfully!");
+        startTransition(() => router.refresh());
+    } else {
+        toast.error("Failed to update profile");
+    }
+  };
 
   const tabs = [
     { id: "general", name: "General Settings", icon: "fa-cog" },
@@ -316,16 +370,51 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
                         <h3 className="text-xl font-bold text-brand-dark">My Profile</h3>
                         <p className="text-sm text-slate-500">Update your personal administrative information.</p>
                     </div>
+                    
                     <div className="flex items-center gap-8 mb-4">
-                        <div className="w-24 h-24 bg-brand-teal/10 border-4 border-white shadow-lg rounded-full flex items-center justify-center text-brand-teal text-4xl font-black">
-                            {currentUser?.name?.[0] || "A"}
+                        <div className="relative w-24 h-24">
+                            {profileData.image ? (
+                                <img 
+                                    src={profileData.image} 
+                                    alt="Avatar" 
+                                    className="w-full h-full object-cover rounded-full border-4 border-white shadow-lg"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-brand-teal/10 border-4 border-white shadow-lg rounded-full flex items-center justify-center text-brand-teal text-4xl font-black">
+                                    {profileData.name?.[0] || "A"}
+                                </div>
+                            )}
+                            {isUploadingAvatar && (
+                                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                                    <i className="fas fa-spinner fa-spin text-white"></i>
+                                </div>
+                            )}
                         </div>
-                        <button className="bg-slate-50 border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white transition-all">Change Avatar</button>
+                        
+                        <div>
+                            <label className="cursor-pointer bg-slate-50 border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white transition-all inline-block">
+                                {isUploadingAvatar ? "Uploading..." : "Change Avatar"}
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="hidden" 
+                                    onChange={handleAvatarUpload}
+                                    disabled={isUploadingAvatar}
+                                />
+                            </label>
+                            <p className="text-[10px] text-slate-400 mt-2">Recommended: 200x200px, JPG/PNG</p>
+                        </div>
                     </div>
+
                     <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
                         <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Full Name</label>
-                        <input type="text" defaultValue={currentUser?.name} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-teal/10 focus:border-brand-teal outline-none" />
+                        <input 
+                            type="text" 
+                            value={profileData.name}
+                            onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-teal/10 focus:border-brand-teal outline-none" 
+                        />
                         </div>
                         <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Email Address</label>
@@ -333,7 +422,13 @@ export default function SettingsManager({ initialAdmins, currentUser, initialGlo
                         </div>
                     </div>
                     <div className="pt-6 border-t border-slate-100">
-                        <button onClick={() => toast.success("Profile updated!")} className="bg-brand-teal text-white px-8 py-3 rounded-xl font-bold hover:bg-[#006066] transition-all shadow-lg shadow-brand-teal/20">Update Profile</button>
+                        <button 
+                            onClick={handleUpdateProfile} 
+                            disabled={isSubmitting || isUploadingAvatar}
+                            className="bg-brand-teal text-white px-8 py-3 rounded-xl font-bold hover:bg-[#006066] transition-all shadow-lg shadow-brand-teal/20 disabled:opacity-50"
+                        >
+                            {isSubmitting ? "Saving..." : "Update Profile"}
+                        </button>
                     </div>
                 </motion.div>
             )}

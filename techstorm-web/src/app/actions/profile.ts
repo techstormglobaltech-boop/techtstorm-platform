@@ -30,7 +30,7 @@ export async function updateMyProfile(data: any) {
 
 export async function getPublicMentors() {
   try {
-    return await fetchApi("/users/mentors");
+    return await fetchApi("/users/mentors", { cache: "no-store" });
   } catch (error) {
     console.error("Failed to fetch public mentors:", error);
     return [];

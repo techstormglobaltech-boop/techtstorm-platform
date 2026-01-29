@@ -80,4 +80,10 @@ export class PublicService {
     });
     return !!settings?.maintenanceMode;
   }
+
+  async getTeamMembers() {
+    return this.prisma.teamMember.findMany({
+      orderBy: { order: 'asc' },
+    });
+  }
 }

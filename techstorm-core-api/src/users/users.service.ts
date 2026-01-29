@@ -41,7 +41,7 @@ export class UsersService {
 
   async getMentors() {
     return this.prisma.user.findMany({
-      where: { role: { in: ['MENTOR', 'ADMIN'] } },
+      where: { role: 'MENTOR' },
       select: {
         id: true,
         name: true,

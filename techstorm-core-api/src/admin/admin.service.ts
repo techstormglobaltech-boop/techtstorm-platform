@@ -94,4 +94,19 @@ export class AdminService {
       create: { id: 'system_settings', ...data }
     });
   }
+
+  async createTeamMember(role: string, data: any) {
+    if (role !== 'ADMIN') throw new ForbiddenException();
+    return this.prisma.teamMember.create({ data });
+  }
+
+  async updateTeamMember(role: string, id: string, data: any) {
+    if (role !== 'ADMIN') throw new ForbiddenException();
+    return this.prisma.teamMember.update({ where: { id }, data });
+  }
+
+  async deleteTeamMember(role: string, id: string) {
+    if (role !== 'ADMIN') throw new ForbiddenException();
+    return this.prisma.teamMember.delete({ where: { id } });
+  }
 }

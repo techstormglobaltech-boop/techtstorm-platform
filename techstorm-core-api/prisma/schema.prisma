@@ -278,7 +278,7 @@ model GlobalSetting {
   id                String  @id @default("system_settings")
   maintenanceMode   Boolean @default(false)
   platformName      String  @default("TechStorm Global")
-  supportEmail      String  @default("hello@techstormglobal.com")
+  supportEmail      String  @default("Info@techstormglobal.com")
   updatedAt         DateTime @updatedAt
 }
 
@@ -299,4 +299,18 @@ model GalleryImage {
   description String?
   category  String   @default("events")
   createdAt DateTime @default(now())
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  bio       String?  @db.Text
+  image     String
+  order     Int      @default(0)
+  linkedinUrl String?
+  twitterUrl  String?
+  youtubeUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -46,7 +46,11 @@ export async function getMenteeMeetings() {
 
 export async function getEnrolledCourses() {
   try {
-    return await fetchApi("/students/enrolled-courses");
+    const enrollments = await fetchApi("/students/enrolled-courses");
+    if (Array.isArray(enrollments)) {
+        return enrollments.map((e: any) => e.course);
+    }
+    return [];
   } catch (error) {
     return [];
   }

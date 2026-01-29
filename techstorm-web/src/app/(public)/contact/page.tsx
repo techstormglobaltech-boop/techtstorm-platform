@@ -94,7 +94,7 @@ export default function Contact() {
                             </div>
                             <div>
                                 <h4 className="font-bold text-brand-dark">Call Us</h4>
-                                <p className="text-text-gray text-sm">+233 (0) 555-555-555</p>
+                                <p className="text-text-gray text-sm">+233 24 943 8890</p>
                             </div>
                         </div>
 
@@ -104,7 +104,7 @@ export default function Contact() {
                             </div>
                             <div>
                                 <h4 className="font-bold text-brand-dark">Email Us</h4>
-                                <p className="text-text-gray text-sm">hello@techstormglobal.com</p>
+                                <p className="text-text-gray text-sm">Info@techstormglobal.com</p>
                             </div>
                         </div>
                     </div>

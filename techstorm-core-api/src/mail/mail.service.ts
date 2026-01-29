@@ -10,7 +10,7 @@ export class MailService {
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
-    this.fromEmail = this.configService.get<string>('MAIL_FROM_EMAIL') || 'TechStorm <noreply@techstorm.global>';
+    this.fromEmail = this.configService.get<string>('MAIL_FROM_EMAIL') || 'TechStorm <info@techstormglobal.com>';
 
     if (apiKey) {
       this.resend = new Resend(apiKey);

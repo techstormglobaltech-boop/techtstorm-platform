@@ -1,14 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { leaveCourse } from "@/app/actions/learning";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface MyCoursesListProps {
   initialCourses: any[];
 }
 
 export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState("In Progress");
+  const [courseToLeave, setCourseToLeave] = useState<string | null>(null);
 
   const filteredCourses = initialCourses.filter(course => {
     if (activeTab === "All") return true;
@@ -16,6 +23,20 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
     if (activeTab === "Completed") return course.progress === 100;
     return true;
   });
+
+  const handleLeaveCourse = async () => {
+    if (!courseToLeave) return;
+
+    const result = await leaveCourse(courseToLeave);
+    setCourseToLeave(null);
+
+    if (result.success) {
+        toast.success("You have left the course.");
+        startTransition(() => router.refresh());
+    } else {
+        toast.error("Failed to leave course.");
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -48,7 +69,7 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCourses.length > 0 ? (
             filteredCourses.map((course: any) => (
-                <div key={course.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+                <div key={course.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full group relative">
                     <div className="relative h-48 bg-slate-200">
                         {course.image ? (
                             <Image src={course.image} alt={course.title} fill className="object-cover" />
@@ -58,11 +79,25 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
                             </div>
                         )}
                         <div className="absolute inset-0 bg-black/10"></div>
+                        
+                        {/* Status Badges */}
                         {course.progress === 100 && (
-                            <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                            <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
                                 <i className="fas fa-check-circle"></i> Completed
                             </div>
                         )}
+
+                        {/* Leave Course Button */}
+                        <button 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setCourseToLeave(course.id);
+                            }}
+                            className="absolute top-3 right-3 w-8 h-8 bg-black/40 hover:bg-red-500 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                            title="Unenroll from Course"
+                        >
+                            <i className="fas fa-trash-alt text-xs"></i>
+                        </button>
                     </div>
                     
                     <div className="p-5 flex flex-col flex-1">
@@ -109,6 +144,15 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
             </div>
         )}
       </div>
+
+      <ConfirmModal 
+        isOpen={!!courseToLeave}
+        onClose={() => setCourseToLeave(null)}
+        onConfirm={handleLeaveCourse}
+        title="Leave Course?"
+        message="Are you sure you want to unenroll? Your progress will be saved if you rejoin later."
+        confirmText="Yes, Unenroll"
+      />
     </div>
   );
 }

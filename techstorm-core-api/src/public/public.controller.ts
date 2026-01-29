@@ -24,4 +24,9 @@ export class PublicController {
   getMaintenanceMode() {
     return this.publicService.getMaintenanceMode();
   }
+
+  @Get('team')
+  getTeamMembers() {
+    return this.publicService.getTeamMembers();
+  }
 }

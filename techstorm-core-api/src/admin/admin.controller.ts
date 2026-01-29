@@ -36,4 +36,19 @@ export class AdminController {
   updateSettings(@Request() req, @Body() data: any) {
     return this.adminService.updateSettings(req.user.role, data);
   }
+
+  @Post('team')
+  createTeamMember(@Request() req, @Body() data: any) {
+    return this.adminService.createTeamMember(req.user.role, data);
+  }
+
+  @Patch('team/:id')
+  updateTeamMember(@Request() req, @Param('id') id: string, @Body() data: any) {
+    return this.adminService.updateTeamMember(req.user.role, id, data);
+  }
+
+  @Delete('team/:id')
+  deleteTeamMember(@Request() req, @Param('id') id: string) {
+    return this.adminService.deleteTeamMember(req.user.role, id);
+  }
 }

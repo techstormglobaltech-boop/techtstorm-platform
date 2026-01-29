@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -20,6 +20,11 @@ export class StudentsController {
   @Post('enroll')
   enroll(@Request() req, @Body('courseId') courseId: string) {
     return this.studentsService.enroll(req.user.userId, courseId);
+  }
+
+  @Delete('enroll/:courseId')
+  unenroll(@Request() req, @Param('courseId') courseId: string) {
+    return this.studentsService.unenroll(req.user.userId, courseId);
   }
 
   @Post('quizzes/:id/submit')

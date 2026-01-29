@@ -83,6 +83,14 @@ export class StudentsService {
     });
   }
 
+  async unenroll(userId: string, courseId: string) {
+    return this.prisma.enrollment.delete({
+      where: {
+        userId_courseId: { userId, courseId },
+      },
+    });
+  }
+
   async submitQuiz(userId: string, quizId: string, score: number, totalQuestions: number) {
     return this.prisma.quizAttempt.create({
       data: {

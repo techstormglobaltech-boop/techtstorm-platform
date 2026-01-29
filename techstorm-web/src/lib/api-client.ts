@@ -26,5 +26,11 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     throw new Error(error.message || `API Error: ${response.statusText}`);
   }
 
-  return response.json();
+  const text = await response.text();
+  try {
+      return text ? JSON.parse(text) : {};
+  } catch (e) {
+      console.error("Failed to parse JSON response:", text);
+      return {};
+  }
 }

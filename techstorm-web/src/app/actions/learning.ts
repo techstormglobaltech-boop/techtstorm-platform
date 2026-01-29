@@ -42,3 +42,16 @@ export async function getMenteeDashboardData() {
     return null;
   }
 }
+
+export async function leaveCourse(courseId: string) {
+  try {
+    await fetchApi(`/students/enroll/${courseId}`, {
+      method: "DELETE",
+    });
+    revalidatePath("/mentee/my-courses");
+    revalidatePath("/mentee/dashboard");
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to leave course" };
+  }
+}
