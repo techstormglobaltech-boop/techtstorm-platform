@@ -112,4 +112,18 @@ export class MailService {
     `;
     return this.send(email, subject, html);
   }
+
+  async sendPasswordResetEmail(email: string, resetLink: string) {
+    const subject = 'Reset your TechStorm Global password';
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #008080;">Reset Password Request</h2>
+        <p>We received a request to reset your password for your TechStorm Global account.</p>
+        <p>Click the button below to reset your password:</p>
+        <a href="${resetLink}" style="display: inline-block; background-color: #008080; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px;">Reset Password</a>
+        <p style="margin-top: 30px; font-size: 12px; color: #64748b;">If you didn't request a password reset, you can safely ignore this email. The link will expire in 1 hour.</p>
+      </div>
+    `;
+    return this.send(email, subject, html);
+  }
 }

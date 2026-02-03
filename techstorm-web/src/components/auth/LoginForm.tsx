@@ -64,9 +64,9 @@ export default function LoginForm() {
           </div>
 
           <div className="text-sm">
-            <a href="#" className="font-medium text-brand-teal hover:text-[#006066]">
+            <Link href="/forgot-password" className="font-medium text-brand-teal hover:text-[#006066]">
               Forgot your password?
-            </a>
+            </Link>
           </div>
         </div>
 

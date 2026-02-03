@@ -206,4 +206,43 @@ export class AuthService {
       data: { password: hashedPassword }
     });
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't reveal if user exists
+      return { message: 'If an account with that email exists, we have sent a password reset link.' };
+    }
+
+    const payload = { sub: user.id, email: user.email, type: 'password_reset' };
+    const token = this.jwtService.sign(payload, { expiresIn: '1h' });
+    
+    const frontendUrl = this.configService.get<string>('NEXT_PUBLIC_APP_URL') || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+    await this.mailService.sendPasswordResetEmail(user.email, resetLink);
+    
+    return { message: 'If an account with that email exists, we have sent a password reset link.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      if (payload.type !== 'password_reset') throw new BadRequestException('Invalid token type');
+
+      const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+      if (!user) throw new NotFoundException('User not found');
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword }
+      });
+
+      return { message: 'Password has been reset successfully.' };
+    } catch (error) {
+      throw new BadRequestException('Invalid or expired password reset token');
+    }
+  }
 }

@@ -16,6 +16,8 @@ import { GalleryModule } from './gallery/gallery.module';
 import { MailModule } from './mail/mail.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { UsersModule } from './users/users.module';
+import { TestimonialsModule } from './testimonials/testimonials.module';
+import { SponsorsModule } from './sponsors/sponsors.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { UsersModule } from './users/users.module';
     MailModule,
     InvitationsModule,
     UsersModule,
+    TestimonialsModule,
+    SponsorsModule,
   ],
   controllers: [],
   providers: [],

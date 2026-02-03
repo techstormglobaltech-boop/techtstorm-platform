@@ -69,3 +69,62 @@ export async function authenticate(prevState: string | undefined, formData: Form
 export async function logout() {
   await signOut({ redirectTo: "/" });
 }
+
+export async function forgotPassword(prevState: string | undefined, formData: FormData) {
+  const email = formData.get("email");
+
+  const validatedFields = z.object({ email: z.string().email() }).safeParse({ email });
+
+  if (!validatedFields.success) {
+    return "Invalid email address.";
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: validatedFields.data.email }),
+    });
+    
+    // Always return success message for security, or the backend message
+    // Backend returns: { message: '...' }
+    const data = await res.json();
+    if (!res.ok) return data.message || "Something went wrong.";
+    
+    return "Check your email for a password reset link.";
+  } catch (error) {
+    return "Failed to send request.";
+  }
+}
+
+export async function resetPassword(prevState: string | undefined, formData: FormData) {
+  const password = formData.get("password");
+  const token = formData.get("token");
+
+  const validatedFields = z.object({
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    token: z.string().min(1, "Invalid token"),
+  }).safeParse({ password, token });
+
+  if (!validatedFields.success) {
+    return validatedFields.error.issues[0].message;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        token: validatedFields.data.token, 
+        password: validatedFields.data.password 
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return data.message || "Failed to reset password.";
+
+    return "Password has been reset successfully. You can now login.";
+  } catch (error) {
+    return "Something went wrong.";
+  }
+}

@@ -8,8 +8,17 @@ export default async function AdminLayout({
 }>) {
   const session = await auth();
 
+  // Sanitize user object to ensure serializability
+  const sanitizedUser = session?.user ? {
+    id: session.user.id,
+    name: session.user.name,
+    email: session.user.email,
+    image: session.user.image,
+    role: (session.user as any).role,
+  } : undefined;
+
   return (
-    <AdminLayoutClient user={session?.user}>
+    <AdminLayoutClient user={sanitizedUser}>
         {children}
     </AdminLayoutClient>
   );

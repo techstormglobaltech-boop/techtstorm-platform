@@ -23,6 +23,16 @@ export class AuthController {
     return this.authService.setupAccount(token, password, name, profileData);
   }
 
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { token: string; password: string }) {
+    return this.authService.resetPassword(body.token, body.password);
+  }
+
   @Post('login')
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);

@@ -6,7 +6,7 @@ export class PublicService {
   constructor(private prisma: PrismaService) {}
 
   async getHomeData() {
-    const [courses, events, totalMentees, totalCourses, totalMentors] = await Promise.all([
+    const [courses, events, totalMentees, totalCourses, totalMentors, testimonials, sponsors] = await Promise.all([
       this.prisma.course.findMany({
         where: { status: 'PUBLISHED' },
         take: 3,
@@ -24,6 +24,13 @@ export class PublicService {
       this.prisma.user.count({ where: { role: 'MENTEE' } }),
       this.prisma.course.count({ where: { status: 'PUBLISHED' } }),
       this.prisma.user.count({ where: { role: 'MENTOR' } }),
+      this.prisma.testimonial.findMany({
+        take: 6,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.sponsor.findMany({
+        orderBy: { order: 'asc' },
+      }),
     ]);
 
     return {
@@ -34,6 +41,8 @@ export class PublicService {
         totalCourses,
         totalMentors,
       },
+      testimonials,
+      sponsors,
     };
   }
 

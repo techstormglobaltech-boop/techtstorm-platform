@@ -2,10 +2,18 @@ import Link from "next/link";
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { getHomeData } from "@/app/actions/home";
+import SponsorsSection from "@/components/SponsorsSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 
 export default async function Home() {
   const data = await getHomeData();
-  const { courses, events, stats } = data || { courses: [], events: [], stats: { totalMentees: 0, totalCourses: 0, totalMentors: 0 } };
+  const { courses, events, stats, testimonials, sponsors } = data || { 
+    courses: [], 
+    events: [], 
+    stats: { totalMentees: 0, totalCourses: 0, totalMentors: 0 },
+    testimonials: [],
+    sponsors: []
+  };
 
   return (
     <>
@@ -250,25 +258,11 @@ export default async function Home() {
           </div>
       </section>
 
-      {/* CTA SECTION */}
-      <section className="py-24 bg-brand-teal relative overflow-hidden">
-        <div className="container mx-auto px-5 text-center relative z-10">
-            <Reveal>
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to Accelerate Your Career?</h2>
-            </Reveal>
-            <Reveal delay={200}>
-                <p className="text-teal-50 text-xl mb-10 max-w-2xl mx-auto opacity-90">Join thousands of learners and mentors making a real difference in the world of technology.</p>
-            </Reveal>
-            <Reveal delay={300}>
-                <Link href="/register" className="bg-brand-amber text-brand-dark font-black px-12 py-5 rounded-full hover:bg-white hover:text-brand-teal transition-all transform hover:-translate-y-1 shadow-2xl inline-block text-lg">
-                    Get Started Today
-                </Link>
-            </Reveal>
-        </div>
-        {/* Abstract shapes */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
-      </section>
+      {/* TESTIMONIALS SECTION */}
+      <TestimonialsSection testimonials={testimonials} />
+
+      {/* SPONSORS SECTION */}
+      <SponsorsSection sponsors={sponsors} />
     </>
   );
 }
