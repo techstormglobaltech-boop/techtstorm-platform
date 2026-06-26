@@ -32,11 +32,11 @@ export default function TestimonialsSection({ testimonials }: { testimonials: Te
               <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all border border-slate-100 h-full flex flex-col">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="relative w-14 h-14 rounded-full overflow-hidden bg-slate-100 border-2 border-brand-teal/20">
-                     {testimonial.image ? (
+                     {testimonial.image && typeof testimonial.image === 'string' && (testimonial.image.startsWith('http') || testimonial.image.startsWith('/')) ? (
                         <Image src={testimonial.image} alt={testimonial.name} fill className="object-cover" />
                      ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300 font-bold text-xl">
-                            {testimonial.name.charAt(0)}
+                            {testimonial.name ? testimonial.name.charAt(0) : '?'}
                         </div>
                      )}
                   </div>

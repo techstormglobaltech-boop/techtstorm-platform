@@ -1,7 +1,7 @@
 import os
 import json
 import time
-import google.generativeai as genai
+from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -11,8 +11,9 @@ load_dotenv()
 
 router = APIRouter()
 
-# Configure Gemini
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+# Configure Hugging Face
+hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_API_KEY")
+client = InferenceClient(token=hf_token)
 
 class Question(BaseModel):
     text: str
@@ -52,35 +53,34 @@ async def generate_course(request: CourseRequest):
     print(f"Generating course for: {request.topic}")
     
     prompt = f"""
-    Create a detailed course outline for: "{request.topic}" at a "{request.level}" level.
+    Create a highly professional and comprehensive course outline for the topic: "{request.topic}" at a "{request.level}" level.
     
-    Instructions:
-    - Create a structure with Modules and Lessons.
-    - **CRITICAL:** Analyze the user's topic request carefully.
-      - If the user mentions "videos", "youtube", "clips", include RELEVANT 'video_url' fields (use search placeholders if needed, e.g., 'https://www.youtube.com/results?search_query=topic').
-      - If the user mentions "quiz", "test", "assessment", include a 'quiz' object for relevant lessons.
-      - If the user mentions "assignment", "homework", "project", include an 'assignment' object.
-      - If the user says "comprehensive", "full", or "interactive", include ALL (videos, quizzes, assignments) where appropriate.
-    - If strictly no extra features are requested, provide a standard outline but YOU ARE ALLOWED to add them if they enhance the learning experience significantly.
-
-    The response must be a valid JSON object strictly following this structure:
+    BEST PRACTICES & INSTRUCTIONS:
+    1. Think step-by-step about the logical progression of this topic for a {request.level} learner.
+    2. Ensure the curriculum is highly practical and structured logically.
+    3. Analyze the topic request carefully:
+       - Include RELEVANT 'video_url' fields (use search placeholders if needed, e.g., 'https://www.youtube.com/results?search_query=topic').
+       - Include a 'quiz' object for relevant lessons to test understanding.
+       - Include an 'assignment' object for hands-on practice.
+    
+    The response MUST be a valid JSON object strictly following this structure (No markdown, no explanations outside JSON):
     {{
         "title": "Course Title",
-        "description": "Short course description",
+        "description": "Short, engaging course description",
         "modules": [
             {{
                 "title": "Module Title",
                 "lessons": [
                     {{
                         "title": "Lesson Title",
-                        "description": "Short lesson description",
+                        "description": "Detailed lesson description",
                         "video_url": "Valid YouTube URL or search link (Optional - null if none)",
                         "quiz": {{
                             "title": "Quiz Title",
                             "questions": [
                                 {{
                                     "text": "Question text?",
-                                    "options": ["Option A", "Option B", "Option C"],
+                                    "options": ["Option A", "Option B", "Option C", "Option D"],
                                     "correct_answer": "Option A"
                                 }}
                             ]
@@ -94,31 +94,31 @@ async def generate_course(request: CourseRequest):
             }}
         ]
     }}
-    Provide 3-5 modules, each with 2-4 lessons. Return ONLY the JSON object.
+    Provide 3-5 modules, each with 2-4 lessons. Return ONLY the raw JSON object. Do not wrap in ```json block.
     """
 
     models_to_try = [
-        'gemini-2.0-flash-lite-preview-02-05',
-        'gemini-2.0-flash-lite-preview',
-        'gemini-2.5-flash-lite',
-        'gemini-2.0-flash-lite',
-        'gemini-2.5-flash', 
-        'gemini-2.0-flash', 
-        'gemini-2.0-flash-exp',
-        'gemini-flash-latest'
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "Qwen/Qwen2.5-72B-Instruct",
+        "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        "meta-llama/Meta-Llama-3-8B-Instruct",
+        "mistralai/Mistral-7B-Instruct-v0.3",
+        "Qwen/Qwen2.5-7B-Instruct"
     ]
     last_error = ""
 
     for model_name in models_to_try:
         try:
             print(f"Attempting with model: {model_name}")
-            current_model = genai.GenerativeModel(model_name)
-            response = current_model.generate_content(prompt)
+            messages = [{"role": "user", "content": prompt}]
+            response = client.chat_completion(
+                messages,
+                model=model_name,
+                max_tokens=3000,
+                temperature=0.3,
+            )
             
-            if not response.text:
-                continue
-
-            content = response.text.strip()
+            content = response.choices[0].message.content.strip()
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0].strip()
             elif "```" in content:

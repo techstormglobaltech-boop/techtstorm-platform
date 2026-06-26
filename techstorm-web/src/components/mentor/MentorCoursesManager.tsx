@@ -46,11 +46,13 @@ export default function MentorCoursesManager({ initialCourses }: MentorCoursesMa
     const result = await deleteCourse(confirmDelete.courseId);
     if (result.success) {
       toast.success("Course deleted successfully");
+      setConfirmDelete({ isOpen: false, courseId: null });
       startTransition(() => {
           router.refresh();
       });
     } else {
       toast.error("Failed to delete course");
+      setConfirmDelete({ isOpen: false, courseId: null });
     }
   };
 

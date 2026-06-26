@@ -24,6 +24,7 @@ export default function CourseEditor({ course }: CourseEditorProps) {
     price: course.price || "",
     category: course.category || "Programming",
     image: course.image || "",
+    status: course.status || "DRAFT",
   });
 
   const handleSave = async (e: React.FormEvent) => {
@@ -163,6 +164,68 @@ export default function CourseEditor({ course }: CourseEditorProps) {
 
             {activeTab === "curriculum" && (
                 <CurriculumEditor course={course} />
+            )}
+
+            {activeTab === "settings" && (
+                <div className="space-y-6">
+                    {/* Status Section */}
+                    <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-brand-dark">Course Visibility</h3>
+                                <p className="text-sm text-slate-500">Manage who can see and enroll in your course.</p>
+                            </div>
+                            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${course.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {course.status || 'DRAFT'}
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4 border-t border-slate-50 pt-6">
+                            <button 
+                                onClick={(e) => { e.preventDefault(); setFormData({...formData, status: "DRAFT"}); }}
+                                className={`flex-1 py-4 px-4 rounded-xl border-2 font-bold transition-all text-left ${formData.status === 'DRAFT' ? 'border-brand-amber bg-brand-amber/5 text-brand-dark' : 'border-slate-100 text-slate-400 hover:border-slate-300'}`}
+                            >
+                                <div className="flex items-center gap-3 mb-1">
+                                    <i className={`fas fa-lock ${formData.status === 'DRAFT' ? 'text-brand-amber' : ''}`}></i>
+                                    <span>Draft Mode</span>
+                                </div>
+                                <p className={`text-xs font-normal ${formData.status === 'DRAFT' ? 'text-slate-600' : 'text-slate-400'}`}>Hidden from public. Only you can view this.</p>
+                            </button>
+                            <button 
+                                onClick={(e) => { e.preventDefault(); setFormData({...formData, status: "PUBLISHED"}); }}
+                                className={`flex-1 py-4 px-4 rounded-xl border-2 font-bold transition-all text-left ${formData.status === 'PUBLISHED' ? 'border-brand-teal bg-brand-teal/5 text-brand-dark' : 'border-slate-100 text-slate-400 hover:border-slate-300'}`}
+                            >
+                                <div className="flex items-center gap-3 mb-1">
+                                    <i className={`fas fa-globe ${formData.status === 'PUBLISHED' ? 'text-brand-teal' : ''}`}></i>
+                                    <span>Published</span>
+                                </div>
+                                <p className={`text-xs font-normal ${formData.status === 'PUBLISHED' ? 'text-slate-600' : 'text-slate-400'}`}>Visible to all students. Ready for enrollment.</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="bg-white p-6 rounded-xl border border-red-100 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500"></div>
+                        <h3 className="text-lg font-bold text-red-700 mb-2">Danger Zone</h3>
+                        <p className="text-sm text-slate-500 mb-6 max-w-lg">Permanently remove this course and all its associated data, including student progress and quizzes. This action cannot be undone.</p>
+                        
+                        <button 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                const confirmDelete = window.prompt(`Type "${course.title}" to confirm deletion:`);
+                                if (confirmDelete === course.title) {
+                                    // Hook up to backend deletion logic later
+                                    toast.error("Delete functionality is currently disabled in this environment.");
+                                } else if (confirmDelete !== null) {
+                                    toast.error("Course name did not match.");
+                                }
+                            }}
+                            className="bg-white border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 px-6 py-2.5 rounded-lg font-bold transition-colors shadow-sm flex items-center gap-2"
+                        >
+                            <i className="fas fa-trash-alt"></i> Delete Course
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
 

@@ -8,4 +8,4 @@ openai
 pandas
 numpy
 scikit-learn
-google-generativeai
+huggingface_hub
