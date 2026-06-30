@@ -106,7 +106,7 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {images.map((img) => (
                 <div key={img.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 group">
-                    <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-slate-100">
+                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-4 bg-slate-100">
                         <Image src={img.url} alt={img.title || "Gallery Image"} fill className="object-cover group-hover:scale-105 transition-transform" />
                         <button 
                             onClick={() => handleDeleteClick(img.id)}

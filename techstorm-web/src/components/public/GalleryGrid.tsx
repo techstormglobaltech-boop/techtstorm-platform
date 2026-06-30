@@ -45,7 +45,7 @@ export default function GalleryGrid({ initialItems }: GalleryGridProps) {
                 {filteredItems.map((item, index) => (
                     <Reveal key={item.id} width="100%" delay={index * 100}>
                         <div 
-                            className="group relative min-h-[350px] rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] bg-slate-100"
+                            className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-[1.02] bg-slate-100"
                             onClick={() => setSelectedImg(item.url)}
                         >
                             <Image 
