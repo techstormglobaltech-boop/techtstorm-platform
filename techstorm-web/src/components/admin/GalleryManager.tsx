@@ -141,7 +141,9 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                        {form.category === 'mentor' || form.category === 'past_speakers' ? 'Name' : 'Title'}
+                    </label>
                     <input 
                         type="text" 
                         required
@@ -159,7 +161,7 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                         onChange={(e) => setForm({...form, category: e.target.value})}
                     >
                         <option value="events">Events</option>
-                        <option value="mentors">Mentors</option>
+                        <option value="mentor">Mentor</option>
                         <option value="volunteers">Volunteers</option>
                         <option value="past_speakers">Past Speakers</option>
                     </select>

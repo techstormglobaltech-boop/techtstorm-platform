@@ -20,7 +20,7 @@ export default function GalleryGrid({ initialItems }: GalleryGridProps) {
       <section className="container mx-auto px-5 pb-20">
         <Reveal width="100%">
             <div className="flex justify-center flex-wrap gap-3 mb-12">
-                {["all", "events", "mentors", "volunteers", "past_speakers"].map((cat) => (
+                {["all", "events", "mentor", "volunteers", "past_speakers"].map((cat) => (
                     <button 
                         key={cat}
                         onClick={() => setFilter(cat)}
