@@ -116,7 +116,9 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                         </button>
                     </div>
                     <h4 className="font-bold text-brand-dark truncate">{img.title}</h4>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide font-bold mt-1">{img.category}</p>
+                    <p className="text-xs text-slate-500 uppercase tracking-wide font-bold mt-1">
+                        {img.category === 'past_speakers' ? 'Past Speakers' : img.category}
+                    </p>
                 </div>
             ))}
         </div>
@@ -159,6 +161,7 @@ export default function GalleryManager({ initialImages }: GalleryManagerProps) {
                         <option value="events">Events</option>
                         <option value="mentors">Mentors</option>
                         <option value="volunteers">Volunteers</option>
+                        <option value="past_speakers">Past Speakers</option>
                     </select>
                 </div>
 
