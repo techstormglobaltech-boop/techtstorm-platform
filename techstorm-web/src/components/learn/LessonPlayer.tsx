@@ -19,7 +19,6 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   const searchParams = useSearchParams();
   const [activeLesson, setActiveLesson] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
   const [isCompleting, setIsCompleting] = useState(false);
   const [submissionContent, setSubmissionContent] = useState("");
   const [submissionFile, setSubmissionFile] = useState<string | null>(null);
@@ -262,25 +261,11 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
 
             {/* ACTION BAR */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-6 py-3 flex justify-between items-center shadow-sm">
-                <div className="flex gap-6 overflow-x-auto no-scrollbar">
-                    {['overview', 'quiz', 'assignment'].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`pb-1 text-sm font-bold capitalize transition-colors relative whitespace-nowrap ${activeTab === tab 
-                                ? 'text-brand-dark' 
-                                : 'text-slate-400 hover:text-slate-600'
-                            }`}
-                        >
-                            {tab}
-                            {activeTab === tab && (
-                                <motion.div 
-                                    layoutId="activeTab"
-                                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-teal rounded-full"
-                                />
-                            )}
-                        </button>
-                    ))}
+                <div className="flex gap-6 overflow-x-auto no-scrollbar items-center">
+                    <h3 className="font-bold text-slate-700 hidden md:block">
+                        <i className={`fas ${getLessonIcon(activeLesson.type)} mr-2 text-brand-teal`}></i>
+                        {activeLesson.type ? activeLesson.type.charAt(0) + activeLesson.type.slice(1).toLowerCase() : 'Video'} Details
+                    </h3>
                 </div>
                 
                 <button 
@@ -303,13 +288,13 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
             <div className="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={activeTab}
+                        key={activeLesson.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                     >
-                        {activeTab === 'overview' && (
+                        {(!activeLesson.type || activeLesson.type === 'VIDEO' || activeLesson.type === 'READING') && (
                             <div className="space-y-8">
                                 <div>
                                     <h2 className="text-3xl font-bold text-slate-800 mb-4">{activeLesson.title}</h2>
@@ -358,7 +343,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                             </div>
                         )}
 
-                        {activeTab === 'quiz' && (
+                        {activeLesson.type === 'QUIZ' && (
                             <div className="max-w-3xl mx-auto">
                                 {activeLesson.quizzes?.[0] ? (
                                     <LessonQuiz quiz={activeLesson.quizzes[0]} />
@@ -374,7 +359,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                             </div>
                         )}
 
-                        {activeTab === 'assignment' && (
+                        {activeLesson.type === 'ASSIGNMENT' && (
                             <div className="max-w-3xl mx-auto">
                                 {activeLesson.assignments?.[0] ? (
                                     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
