@@ -196,98 +196,109 @@ export default function BlogManager({ token }: { token?: string }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Post Title</label>
               <input 
                 type="text" 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-teal outline-none"
-                placeholder="Amazing Blog Post Title"
+                className="w-full p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal bg-slate-50 hover:bg-white transition-all text-lg font-medium text-brand-dark"
+                placeholder="E.g., The Future of AI in Education"
               />
             </div>
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-slate-700">Content (Markdown)</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-bold text-slate-700">Article Content</label>
                 <button 
                   onClick={handleAiDraft}
                   disabled={isGeneratingAi}
-                  className="text-xs bg-brand-amber/20 text-brand-amber font-bold px-3 py-1 rounded-full flex items-center gap-2 hover:bg-brand-amber/30 transition-colors"
+                  className="text-xs bg-brand-amber text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#d97706] transition-all shadow-sm shadow-brand-amber/20"
                 >
                   <i className={`fas ${isGeneratingAi ? 'fa-spinner fa-spin' : 'fa-magic'}`}></i>
-                  {isGeneratingAi ? 'AI is thinking...' : 'Enhance with AI'}
+                  {isGeneratingAi ? 'Drafting with AI...' : 'Draft with AI'}
                 </button>
               </div>
-              <div data-color-mode="light">
+              <div data-color-mode="light" className="rounded-xl overflow-hidden border border-slate-200 focus-within:ring-4 focus-within:ring-brand-teal/10 focus-within:border-brand-teal transition-all">
                 <MDEditor
                   value={content}
                   onChange={(val) => setContent(val || "")}
-                  height={500}
+                  height={600}
+                  previewOptions={{
+                    className: "prose prose-slate max-w-none"
+                  }}
+                  style={{ border: 'none', boxShadow: 'none' }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100 h-fit">
-            <h4 className="font-semibold text-brand-dark border-b pb-2">Publish Settings</h4>
+          <div className="space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-100 h-fit shadow-inner">
+            <h4 className="font-bold text-brand-dark flex items-center gap-2 border-b border-slate-200 pb-3">
+              <i className="fas fa-sliders-h text-brand-teal"></i>
+              Publishing Settings
+            </h4>
             
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Excerpt</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Short Excerpt</label>
               <textarea 
                 value={excerpt} 
                 onChange={e => setExcerpt(e.target.value)} 
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-teal outline-none text-sm"
-                rows={3}
-                placeholder="Short summary for SEO cards..."
+                className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal bg-white transition-all text-sm text-slate-600 resize-none"
+                rows={4}
+                placeholder="A compelling summary for social media previews..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Cover Image</label>
-              <div className="flex items-center gap-2 mb-2">
+              <label className="block text-sm font-bold text-slate-700 mb-2">Cover Image</label>
+              <div className="flex items-center gap-2 mb-3">
                 <input 
                   type="text" 
                   value={coverImage} 
                   onChange={e => setCoverImage(e.target.value)} 
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-teal outline-none text-sm"
-                  placeholder="Image URL or upload..."
+                  className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal bg-white transition-all text-sm"
+                  placeholder="Paste URL..."
                 />
-                <label className="cursor-pointer bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0">
-                  <i className="fas fa-upload"></i>
+                <label className="cursor-pointer bg-white border border-slate-200 hover:border-brand-teal hover:text-brand-teal text-slate-500 w-12 h-12 flex items-center justify-center rounded-xl transition-all shrink-0 shadow-sm">
+                  <i className="fas fa-cloud-upload-alt text-lg"></i>
                   <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                 </label>
               </div>
               {coverImage && (
-                <div className="relative w-full h-32 rounded-lg overflow-hidden border bg-slate-200">
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-inner group">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={coverImage} alt="Cover Preview" className="object-cover w-full h-full" />
+                  <img src={coverImage} alt="Cover Preview" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tags (Comma separated)</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Tags</label>
               <input 
                 type="text" 
                 value={tags} 
                 onChange={e => setTags(e.target.value)} 
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-teal outline-none text-sm"
+                className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-brand-teal/10 focus:border-brand-teal bg-white transition-all text-sm"
                 placeholder="React, AI, Career"
               />
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
-              <input 
-                type="checkbox" 
-                id="isPublished" 
-                checked={isPublished} 
-                onChange={e => setIsPublished(e.target.checked)} 
-                className="w-4 h-4 text-brand-teal rounded focus:ring-brand-teal"
-              />
-              <label htmlFor="isPublished" className="text-sm font-medium text-slate-700">
-                Publish Immediately
+            <div className="pt-4 border-t border-slate-200">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative flex items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={isPublished} 
+                    onChange={e => setIsPublished(e.target.checked)} 
+                    className="peer sr-only"
+                  />
+                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-teal"></div>
+                </div>
+                <span className="text-sm font-bold text-slate-700 group-hover:text-brand-dark transition-colors">
+                  Publish immediately
+                </span>
               </label>
             </div>
           </div>
