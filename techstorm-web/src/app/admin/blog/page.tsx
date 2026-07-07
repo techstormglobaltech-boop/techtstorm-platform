@@ -7,7 +7,7 @@ export const metadata = {
 
 export default async function AdminBlogPage() {
   const session = await auth();
-  const token = session?.user?.id ? (session as any).accessToken : null; // Depending on how you get the token
+  const token = (session?.user as any)?.accessToken;
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-8">
