@@ -129,6 +129,13 @@ enum VideoType {
   UPLOAD
 }
 
+enum LessonType {
+  VIDEO
+  READING
+  QUIZ
+  ASSIGNMENT
+}
+
 model Lesson {
   id          String  @id @default(cuid())
   title       String
@@ -136,6 +143,9 @@ model Lesson {
   position    Int
   isFree      Boolean @default(false)
   duration    Int?    // In seconds
+  
+  type        LessonType @default(VIDEO)
+  textContent String?    @db.Text
   
   videoType   VideoType @default(YOUTUBE)
   videoUrl    String? // Mux or YouTube URL or Supabase Storage URL

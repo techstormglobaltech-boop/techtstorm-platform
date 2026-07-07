@@ -92,6 +92,8 @@ export class CourseService {
                   title: lesson.title,
                   description: lesson.description,
                   position: lIndex,
+                  type: lesson.type || 'VIDEO',
+                  textContent: lesson.textContent || null,
                   videoUrl: lesson.video_url || null,
                   quizzes: lesson.quiz ? {
                     create: {

@@ -25,8 +25,8 @@ export class ContentController {
 
   // LESSONS
   @Post('lessons')
-  createLesson(@Request() req, @Body() body: { moduleId: string; title: string; courseId: string }) {
-    return this.contentService.createLesson(req.user.userId, body.moduleId, body.title);
+  createLesson(@Request() req, @Body() body: { moduleId: string; title: string; courseId: string; type?: any; textContent?: string }) {
+    return this.contentService.createLesson(req.user.userId, body.moduleId, body.title, body.type, body.textContent);
   }
 
   @Patch('lessons/:id')

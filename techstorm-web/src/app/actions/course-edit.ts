@@ -64,11 +64,11 @@ export async function reorderModules(courseId: string, orderedModuleIds: string[
 }
 
 // LESSON ACTIONS
-export async function createLesson(moduleId: string, title: string, courseId: string) {
+export async function createLesson(moduleId: string, title: string, courseId: string, type: string = "VIDEO") {
   try {
     await fetchApi("/content/lessons", {
       method: "POST",
-      body: JSON.stringify({ moduleId, title, courseId }),
+      body: JSON.stringify({ moduleId, title, courseId, type }),
     });
 
     revalidatePath(`/mentor/courses/${courseId}`);

@@ -8,6 +8,7 @@ import { submitAssignment } from "@/app/actions/submissions";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import FileUploader from "@/components/ui/FileUploader";
+import ReactMarkdown from "react-markdown";
 
 interface LessonPlayerProps {
   course: any;
@@ -134,6 +135,15 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
   // Determine if video is a direct upload (Supabase) or YouTube
   const isDirectVideo = activeLesson.videoType === 'UPLOAD' || (activeLesson.videoUrl && activeLesson.videoUrl.includes('supabase'));
 
+  const getLessonIcon = (type: string) => {
+      switch(type) {
+          case 'READING': return 'fa-file-alt';
+          case 'QUIZ': return 'fa-check-circle';
+          case 'ASSIGNMENT': return 'fa-clipboard-list';
+          default: return 'fa-play-circle';
+      }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-slate-900 overflow-hidden font-sans">
       
@@ -184,39 +194,71 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
         {/* CENTER CONTENT */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-50 relative">
             
-            {/* VIDEO SECTION */}
-            <div className="w-full bg-black relative shadow-xl z-20">
-                <div className="aspect-video w-full max-w-6xl mx-auto bg-black flex items-center justify-center relative">
-                    {activeLesson.videoUrl ? (
-                         isDirectVideo ? (
-                            <video 
-                                src={activeLesson.videoUrl} 
-                                className="w-full h-full"
-                                controls
-                                controlsList="nodownload"
-                            ></video>
-                         ) : (
-                            <iframe 
-                                src={embedUrl || activeLesson.videoUrl} 
-                                className="w-full h-full"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                title={activeLesson.title}
-                            ></iframe>
-                         )
-                    ) : (
-                        <div className="text-center p-12">
-                            <div className="w-24 h-24 bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800">
-                                <i className="fas fa-play text-slate-700 text-3xl ml-2"></i>
+            {/* MEDIA SECTION */}
+            {(!activeLesson.type || activeLesson.type === 'VIDEO') && (
+                <div className="w-full bg-black relative shadow-xl z-20">
+                    <div className="aspect-video w-full max-w-6xl mx-auto bg-black flex items-center justify-center relative">
+                        {activeLesson.videoUrl ? (
+                             isDirectVideo ? (
+                                <video 
+                                    src={activeLesson.videoUrl} 
+                                    className="w-full h-full"
+                                    controls
+                                    controlsList="nodownload"
+                                ></video>
+                             ) : (
+                                <iframe 
+                                    src={embedUrl || activeLesson.videoUrl} 
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    title={activeLesson.title}
+                                ></iframe>
+                             )
+                        ) : (
+                            <div className="text-center p-12">
+                                <div className="w-24 h-24 bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800">
+                                    <i className="fas fa-play text-slate-700 text-3xl ml-2"></i>
+                                </div>
+                                <h3 className="text-white font-medium text-lg mb-2">No Video Content</h3>
+                                <p className="text-slate-500 text-sm max-w-md mx-auto">
+                                    This lesson focuses on reading or practical exercises. Please check the resources below.
+                                </p>
                             </div>
-                            <h3 className="text-white font-medium text-lg mb-2">No Video Content</h3>
-                            <p className="text-slate-500 text-sm max-w-md mx-auto">
-                                This lesson focuses on reading or practical exercises. Please check the resources below.
-                            </p>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
+            
+            {activeLesson.type === 'READING' && (
+                <div className="w-full bg-brand-dark relative shadow-xl z-20 py-16 px-6 text-center">
+                    <div className="w-20 h-20 bg-brand-teal/20 text-brand-teal rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i className="fas fa-book-reader text-3xl"></i>
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-2">{activeLesson.title}</h2>
+                    <p className="text-slate-400">Reading Material</p>
+                </div>
+            )}
+
+            {activeLesson.type === 'QUIZ' && (
+                <div className="w-full bg-brand-dark relative shadow-xl z-20 py-16 px-6 text-center">
+                    <div className="w-20 h-20 bg-brand-amber/20 text-brand-amber rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i className="fas fa-clipboard-check text-3xl"></i>
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-2">{activeLesson.title}</h2>
+                    <p className="text-slate-400">Knowledge Check</p>
+                </div>
+            )}
+
+            {activeLesson.type === 'ASSIGNMENT' && (
+                <div className="w-full bg-brand-dark relative shadow-xl z-20 py-16 px-6 text-center">
+                    <div className="w-20 h-20 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i className="fas fa-code-branch text-3xl"></i>
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-2">{activeLesson.title}</h2>
+                    <p className="text-slate-400">Practical Assignment</p>
+                </div>
+            )}
 
             {/* ACTION BAR */}
             <div className="bg-white border-b border-slate-200 sticky top-0 z-10 px-6 py-3 flex justify-between items-center shadow-sm">
@@ -277,7 +319,11 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                         <span className="flex items-center gap-1"><i className="far fa-calendar"></i> Updated recently</span>
                                     </div>
                                     <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-line bg-white p-8 rounded-2xl border border-slate-100 shadow-sm mb-8">
-                                        {activeLesson.description || "No description available for this lesson."}
+                                        {activeLesson.type === 'READING' && activeLesson.textContent ? (
+                                            <ReactMarkdown>{activeLesson.textContent}</ReactMarkdown>
+                                        ) : (
+                                            activeLesson.description || "No description available for this lesson."
+                                        )}
                                     </div>
 
                                     {/* ATTACHMENTS SECTION */}
@@ -501,7 +547,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                                                 </p>
                                                                 <div className="flex items-center gap-2 mt-1">
                                                                     <span className="text-[10px] text-slate-600 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
-                                                                        <i className="far fa-play-circle mr-1"></i> 
+                                                                        <i className={`far ${getLessonIcon(lesson.type)} mr-1`}></i> 
                                                                         {lesson.duration ? Math.floor(lesson.duration/60) + "m" : "5m"}
                                                                     </span>
                                                                 </div>

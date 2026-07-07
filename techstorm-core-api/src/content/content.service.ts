@@ -51,7 +51,7 @@ export class ContentService {
   }
 
   // LESSONS
-  async createLesson(userId: string, moduleId: string, title: string) {
+  async createLesson(userId: string, moduleId: string, title: string, type: any = 'VIDEO', textContent: string = null) {
     const module = await this.prisma.module.findUnique({
       where: { id: moduleId },
       include: { course: true }
@@ -68,7 +68,8 @@ export class ContentService {
         title,
         moduleId,
         position: lastLesson ? lastLesson.position + 1 : 0,
-        isFree: false
+        type,
+        textContent
       }
     });
   }

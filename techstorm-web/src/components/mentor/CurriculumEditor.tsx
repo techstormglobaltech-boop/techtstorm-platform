@@ -40,7 +40,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
   
   // Modal states
   const [moduleModal, setModuleModal] = useState({ isOpen: false, title: "" });
-  const [lessonModal, setLessonModal] = useState({ isOpen: false, title: "", moduleId: "" });
+  const [lessonModal, setLessonModal] = useState({ isOpen: false, title: "", moduleId: "", type: "VIDEO" });
   const [quizModal, setQuizModal] = useState({ isOpen: false, title: "", lessonId: "", quizId: "" });
   const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, title: "", description: "", lessonId: "", assignmentId: "" });
   const [confirmModal, setConfirmModal] = useState<{ 
@@ -172,12 +172,12 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
     if (!lessonModal.title) return;
     
     setIsSubmitting(true);
-    const result = await createLesson(lessonModal.moduleId, lessonModal.title, course.id);
+    const result = await createLesson(lessonModal.moduleId, lessonModal.title, course.id, lessonModal.type);
     setIsSubmitting(false);
 
     if (result.success) {
       toast.success("Lesson added!");
-      setLessonModal({ isOpen: false, title: "", moduleId: "" });
+      setLessonModal({ isOpen: false, title: "", moduleId: "", type: "VIDEO" });
       startTransition(() => {
         router.refresh();
       });
@@ -219,6 +219,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
         description: lesson.description || "",
         videoType: lesson.videoType || "YOUTUBE",
         videoUrl: lesson.videoUrl || "",
+        textContent: lesson.textContent || "",
         duration: lesson.duration || "",
         isFree: lesson.isFree || false
     });
@@ -239,6 +240,15 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
 
   const handleVideoUpload = (url: string) => {
     setLessonForm((prev: any) => ({ ...prev, videoUrl: url }));
+  };
+
+  const getLessonIcon = (type: string) => {
+      switch(type) {
+          case 'READING': return 'fa-file-alt text-brand-amber';
+          case 'QUIZ': return 'fa-check-circle text-brand-teal';
+          case 'ASSIGNMENT': return 'fa-clipboard-list text-brand-dark';
+          default: return 'fa-play-circle text-slate-400';
+      }
   };
 
   return (
@@ -269,7 +279,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                         </div>
                         <div className="flex gap-2">
                             <button 
-                                onClick={() => setLessonModal({ isOpen: true, title: "", moduleId: module.id })}
+                                onClick={() => setLessonModal({ isOpen: true, title: "", moduleId: module.id, type: "VIDEO" })}
                                 className="text-xs bg-brand-teal text-white px-3 py-1.5 rounded hover:bg-[#006066] transition-colors shadow-sm"
                             >
                                 <i className="fas fa-plus mr-1"></i> Add Lesson
@@ -322,51 +332,64 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                                     onChange={(e) => setLessonForm({...lessonForm, description: e.target.value})}
                                                 />
                                                 
-                                                <div className="bg-white p-4 rounded-lg border border-slate-200">
-                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Video Content</p>
-                                                    <div className="flex gap-4 mb-3">
-                                                        <label className="flex items-center gap-2 text-sm cursor-pointer">
-                                                            <input 
-                                                                type="radio" 
-                                                                name="videoType" 
-                                                                value="YOUTUBE"
-                                                                checked={lessonForm.videoType === "YOUTUBE"}
-                                                                onChange={() => setLessonForm({...lessonForm, videoType: "YOUTUBE", videoUrl: ""})}
-                                                            />
-                                                            YouTube Link
-                                                        </label>
-                                                        <label className="flex items-center gap-2 text-sm cursor-pointer">
-                                                            <input 
-                                                                type="radio" 
-                                                                name="videoType" 
-                                                                value="UPLOAD"
-                                                                checked={lessonForm.videoType === "UPLOAD"}
-                                                                onChange={() => setLessonForm({...lessonForm, videoType: "UPLOAD", videoUrl: ""})}
-                                                            />
-                                                            Upload Video
-                                                        </label>
-                                                    </div>
-
-                                                    {lessonForm.videoType === "YOUTUBE" ? (
-                                                        <input 
-                                                            type="text" 
-                                                            className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
-                                                            placeholder="https://www.youtube.com/watch?v=..."
-                                                            value={lessonForm.videoUrl}
-                                                            onChange={(e) => setLessonForm({...lessonForm, videoUrl: e.target.value})}
+                                                {lesson.type === 'READING' ? (
+                                                    <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Reading Material (Markdown)</p>
+                                                        <textarea 
+                                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none font-mono"
+                                                            placeholder="# Lesson Heading\n\nWrite your lesson content here..."
+                                                            rows={10}
+                                                            value={lessonForm.textContent}
+                                                            onChange={(e) => setLessonForm({...lessonForm, textContent: e.target.value})}
                                                         />
-                                                    ) : (
-                                                        <div className="space-y-2">
-                                                            <FileUploader 
-                                                                label=""
-                                                                bucket="course-content"
-                                                                accept="video/*"
-                                                                defaultValue={lessonForm.videoUrl}
-                                                                onUploadComplete={handleVideoUpload}
-                                                            />
+                                                    </div>
+                                                ) : lesson.type === 'VIDEO' ? (
+                                                    <div className="bg-white p-4 rounded-lg border border-slate-200">
+                                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Video Content</p>
+                                                        <div className="flex gap-4 mb-3">
+                                                            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                                                <input 
+                                                                    type="radio" 
+                                                                    name="videoType" 
+                                                                    value="YOUTUBE"
+                                                                    checked={lessonForm.videoType === "YOUTUBE"}
+                                                                    onChange={() => setLessonForm({...lessonForm, videoType: "YOUTUBE", videoUrl: ""})}
+                                                                />
+                                                                YouTube Link
+                                                            </label>
+                                                            <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                                                <input 
+                                                                    type="radio" 
+                                                                    name="videoType" 
+                                                                    value="UPLOAD"
+                                                                    checked={lessonForm.videoType === "UPLOAD"}
+                                                                    onChange={() => setLessonForm({...lessonForm, videoType: "UPLOAD", videoUrl: ""})}
+                                                                />
+                                                                Upload Video
+                                                            </label>
                                                         </div>
-                                                    )}
-                                                </div>
+    
+                                                        {lessonForm.videoType === "YOUTUBE" ? (
+                                                            <input 
+                                                                type="text" 
+                                                                className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
+                                                                placeholder="https://www.youtube.com/watch?v=..."
+                                                                value={lessonForm.videoUrl}
+                                                                onChange={(e) => setLessonForm({...lessonForm, videoUrl: e.target.value})}
+                                                            />
+                                                        ) : (
+                                                            <div className="space-y-2">
+                                                                <FileUploader 
+                                                                    label=""
+                                                                    bucket="course-content"
+                                                                    accept="video/*"
+                                                                    defaultValue={lessonForm.videoUrl}
+                                                                    onUploadComplete={handleVideoUpload}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : null}
 
                                                 <div className="bg-white p-4 rounded-lg border border-slate-200">
                                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Attachments & Resources</p>
@@ -574,7 +597,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                 ) : (
                                     <div className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors group">
                                         <div className="flex items-center gap-3">
-                                            <i className="fas fa-play-circle text-slate-400 text-xs"></i>
+                                            <i className={`fas ${getLessonIcon(lesson.type)} text-xs`}></i>
                                             <span className="text-slate-600 text-sm group-hover:text-brand-dark">{lesson.title}</span>
                                             {lesson.isFree && <span className="text-xs bg-green-100 text-green-700 px-1.5 rounded">Free</span>}
                                         </div>
@@ -657,6 +680,19 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
             title="Add New Lesson"
         >
             <form onSubmit={handleAddLesson} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Lesson Type</label>
+                    <select 
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-brand-teal focus:border-brand-teal mb-4"
+                        value={lessonModal.type}
+                        onChange={(e) => setLessonModal({...lessonModal, type: e.target.value})}
+                    >
+                        <option value="VIDEO">🎥 Video Lesson</option>
+                        <option value="READING">📖 Article / Reading</option>
+                        <option value="QUIZ">📝 Quiz Only</option>
+                        <option value="ASSIGNMENT">💼 Assignment / Project</option>
+                    </select>
+                </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Lesson Title</label>
                     <input 
