@@ -610,7 +610,7 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                     Start by adding a module to your course.
                 </div>
             )}
-        </div>
+        </Reorder.Group>
 
         {/* Add Module Modal */}
         <Modal 
