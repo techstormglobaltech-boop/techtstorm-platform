@@ -299,24 +299,14 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                             <div key={lesson.id}>
                                 {editingLessonId === lesson.id ? (
                                     <div className="p-4 bg-slate-50 space-y-4">
-                                        <div className="flex gap-4 border-b border-slate-200 mb-4">
-                                            {["content", "quiz", "assignment"].map((tab) => (
-                                                <button
-                                                    key={tab}
-                                                    onClick={() => setActiveLessonTab(tab as any)}
-                                                    className={`pb-2 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
-                                                        activeLessonTab === tab 
-                                                        ? "border-brand-teal text-brand-teal" 
-                                                        : "border-transparent text-slate-400 hover:text-slate-600"
-                                                    }`}
-                                                >
-                                                    {tab}
-                                                </button>
-                                            ))}
+                                        <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                                            <h4 className="font-bold text-slate-700 capitalize flex items-center">
+                                                <i className={`fas ${getLessonIcon(lesson.type)} mr-2`}></i>
+                                                Edit {lesson.type?.toLowerCase() || 'Video'} Lesson
+                                            </h4>
                                         </div>
 
-                                        {activeLessonTab === "content" && (
-                                            <div className="space-y-4">
+                                        <div className="space-y-4">
                                                 <input 
                                                     type="text" 
                                                     className="w-full p-2 bg-white border border-slate-200 rounded text-brand-dark text-sm focus:ring-1 focus:ring-brand-teal outline-none"
@@ -332,7 +322,9 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                                     onChange={(e) => setLessonForm({...lessonForm, description: e.target.value})}
                                                 />
                                                 
-                                                {lesson.type === 'READING' ? (
+                                                {(lesson.type === 'READING' || lesson.type === 'VIDEO' || !lesson.type) && (
+                                                    <>
+                                                        {lesson.type === 'READING' ? (
                                                     <div className="bg-white p-4 rounded-lg border border-slate-200">
                                                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Reading Material (Markdown)</p>
                                                         <textarea 
@@ -443,11 +435,12 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                                         Free Preview
                                                     </label>
                                                 </div>
-                                            </div>
-                                        )}
+                                                </>
+                                            )}
+                                        </div>
 
-                                        {activeLessonTab === "quiz" && (
-                                            <div className="space-y-6">
+                                        {lesson.type === "QUIZ" && (
+                                            <div className="space-y-6 mt-6 border-t border-slate-200 pt-4">
                                                 {!lesson.quizzes?.[0] ? (
                                                     <div className="text-center py-10 bg-white border border-dashed border-slate-200 rounded-xl space-y-4">
                                                         <p className="text-slate-500">No quiz for this lesson yet.</p>
@@ -550,8 +543,8 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                             </div>
                                         )}
 
-                                        {activeLessonTab === "assignment" && (
-                                            <div className="space-y-4">
+                                        {lesson.type === "ASSIGNMENT" && (
+                                            <div className="space-y-4 mt-6 border-t border-slate-200 pt-4">
                                                 {lesson.assignments?.[0] ? (
                                                     <div className="p-4 bg-white border border-slate-100 rounded-xl space-y-3">
                                                         <div className="flex justify-between items-center">
@@ -687,10 +680,10 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                         value={lessonModal.type}
                         onChange={(e) => setLessonModal({...lessonModal, type: e.target.value})}
                     >
-                        <option value="VIDEO">🎥 Video Lesson</option>
-                        <option value="READING">📖 Article / Reading</option>
-                        <option value="QUIZ">📝 Quiz Only</option>
-                        <option value="ASSIGNMENT">💼 Assignment / Project</option>
+                        <option value="VIDEO">Video Lesson</option>
+                        <option value="READING">Article / Reading</option>
+                        <option value="QUIZ">Quiz Only</option>
+                        <option value="ASSIGNMENT">Assignment / Project</option>
                     </select>
                 </div>
                 <div>
