@@ -75,6 +75,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse, 
                     { path: "/admin/mentors", icon: "fa-users", label: "Mentors" },
                     { path: "/admin/mentees", icon: "fa-user-graduate", label: "Mentees" },
                     { path: "/admin/reports", icon: "fa-chart-bar", label: "Reports" },
+                    { path: "/admin/blog", icon: "fa-pen-nib", label: "Blog Engine" },
                     { path: "/admin/settings", icon: "fa-cog", label: "Settings" }
                 ].map((item) => (
                     <Link 

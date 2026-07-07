@@ -40,6 +40,7 @@ export default function Navbar() {
                          <li><Link href="/team" className="block px-6 py-3 text-sm text-text-gray hover:bg-light-bg hover:text-brand-teal hover:pl-8 transition-all">Team</Link></li>
                          <li><Link href="/testimonials" className="block px-6 py-3 text-sm text-text-gray hover:bg-light-bg hover:text-brand-teal hover:pl-8 transition-all">Testimonials</Link></li>
                          <li><Link href="/events" className="block px-6 py-3 text-sm text-text-gray hover:bg-light-bg hover:text-brand-teal hover:pl-8 transition-all">Events</Link></li>
+                         <li><Link href="/blog" className="block px-6 py-3 text-sm text-text-gray hover:bg-light-bg hover:text-brand-teal hover:pl-8 transition-all">Blog</Link></li>
                          <li><Link href="/newsletter" className="block px-6 py-3 text-sm text-text-gray hover:bg-light-bg hover:text-brand-teal hover:pl-8 transition-all">Tech News</Link></li>
                     </ul>
                 </li>
@@ -71,6 +72,7 @@ export default function Navbar() {
                             <li><Link href="/team" className="block py-2 text-text-gray hover:text-brand-teal" onClick={() => setIsOpen(false)}>Team</Link></li>
                             <li><Link href="/testimonials" className="block py-2 text-text-gray hover:text-brand-teal" onClick={() => setIsOpen(false)}>Testimonials</Link></li>
                             <li><Link href="/events" className="block py-2 text-text-gray hover:text-brand-teal" onClick={() => setIsOpen(false)}>Events</Link></li>
+                            <li><Link href="/blog" className="block py-2 text-text-gray hover:text-brand-teal" onClick={() => setIsOpen(false)}>Blog</Link></li>
                             <li><Link href="/newsletter" className="block py-2 text-text-gray hover:text-brand-teal" onClick={() => setIsOpen(false)}>Tech News</Link></li>
                         </ul>
                     )}
