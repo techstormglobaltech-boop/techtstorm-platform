@@ -21,6 +21,8 @@ import { SponsorsModule } from './sponsors/sponsors.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NewslettersModule } from './newsletters/newsletters.module';
 import { BlogModule } from './blog/blog.module';
+import { LegalModule } from './legal/legal.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -46,6 +48,7 @@ import { BlogModule } from './blog/blog.module';
     SponsorsModule,
     NewslettersModule,
     BlogModule,
+    LegalModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [],

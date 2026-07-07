@@ -362,3 +362,11 @@ model BlogPost {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model LegalDocument {
+  id          String   @id @default(cuid())
+  type        String   @unique // "PRIVACY_POLICY" or "TERMS_OF_SERVICE"
+  title       String
+  content     String   @db.Text
+  updatedAt   DateTime @updatedAt
+}
