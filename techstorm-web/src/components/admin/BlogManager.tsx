@@ -24,6 +24,7 @@ export default function BlogManager({ token }: { token?: string }) {
   const [coverImage, setCoverImage] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -47,6 +48,7 @@ export default function BlogManager({ token }: { token?: string }) {
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       const url = currentId 
         ? `${process.env.NEXT_PUBLIC_API_URL}/blog/${currentId}`
@@ -81,6 +83,9 @@ export default function BlogManager({ token }: { token?: string }) {
       }
     } catch (err) {
       console.error(err);
+      alert("An error occurred while saving.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -183,15 +188,21 @@ export default function BlogManager({ token }: { token?: string }) {
           <div className="flex gap-3">
             <button 
               onClick={() => { setIsEditing(false); resetForm(); }}
-              className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50"
+              className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100 transition-all"
+              disabled={isSaving}
             >
               Cancel
             </button>
             <button 
               onClick={handleSave}
-              className="px-4 py-2 bg-brand-teal text-white rounded-lg hover:bg-[#006066]"
+              disabled={isSaving}
+              className="px-4 py-2 bg-brand-teal text-white rounded-lg hover:bg-[#006066] focus:outline-none focus:ring-4 focus:ring-brand-teal/20 transition-all flex items-center gap-2"
             >
-              Save Post
+              {isSaving ? (
+                <><i className="fas fa-spinner fa-spin"></i> Saving...</>
+              ) : (
+                <><i className="fas fa-save"></i> Save Post</>
+              )}
             </button>
           </div>
         </div>
@@ -214,10 +225,10 @@ export default function BlogManager({ token }: { token?: string }) {
                 <button 
                   onClick={handleAiDraft}
                   disabled={isGeneratingAi}
-                  className="text-xs bg-brand-amber text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#d97706] transition-all shadow-sm shadow-brand-amber/20"
+                  className="text-xs bg-brand-amber text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#d97706] transition-all shadow-sm shadow-brand-amber/20 focus:outline-none focus:ring-4 focus:ring-brand-amber/20"
                 >
                   <i className={`fas ${isGeneratingAi ? 'fa-spinner fa-spin' : 'fa-magic'}`}></i>
-                  {isGeneratingAi ? 'Drafting with AI...' : 'Draft with AI'}
+                  {isGeneratingAi ? 'Enhancing with AI...' : 'Enhance with AI'}
                 </button>
               </div>
               <div data-color-mode="light" className="rounded-xl overflow-hidden border border-slate-200 focus-within:ring-4 focus-within:ring-brand-teal/10 focus-within:border-brand-teal transition-all">
