@@ -1,8 +1,8 @@
 import { getLatestNewsletter, getAllNewsletters } from "@/app/actions/newsletter";
 import ReactMarkdown from "react-markdown";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default async function NewsletterPage() {
   const [latestNewsletter, allNewsletters] = await Promise.all([
