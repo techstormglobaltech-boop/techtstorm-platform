@@ -1,9 +1,6 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
 
 @Controller('blog')
 export class BlogController {
@@ -21,39 +18,38 @@ export class BlogController {
   }
 
   // Admin Endpoints
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'))
   @Get('admin/all')
-  getAllPosts() {
+  getAllPosts(@Req() req: any) {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') throw new UnauthorizedException('Admin only');
     return this.blogService.getAllPosts();
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   createPost(@Body() data: any, @Req() req: any) {
-    // Use the admin's ID for authorId
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') throw new UnauthorizedException('Admin only');
     return this.blogService.createPost(data, req.user.id);
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
-  updatePost(@Param('id') id: string, @Body() data: any) {
+  updatePost(@Param('id') id: string, @Body() data: any, @Req() req: any) {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') throw new UnauthorizedException('Admin only');
     return this.blogService.updatePost(id, data);
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  deletePost(@Param('id') id: string) {
+  deletePost(@Param('id') id: string, @Req() req: any) {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') throw new UnauthorizedException('Admin only');
     return this.blogService.deletePost(id);
   }
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @UseGuards(AuthGuard('jwt'))
   @Post('ai/enhance')
-  enhanceWithAi(@Body('outline') outline: string) {
+  enhanceWithAi(@Body('outline') outline: string, @Req() req: any) {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') throw new UnauthorizedException('Admin only');
     return this.blogService.draftWithAi(outline);
   }
 }
