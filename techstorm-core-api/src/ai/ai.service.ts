@@ -107,5 +107,15 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       console.error('AI Newsletter Error:', error.message);
       throw new InternalServerErrorException('AI Engine failed to generate newsletter');
     }
+  async enhanceBlog(outline: string) {
+    try {
+      const response = await firstValueFrom<any>(
+        this.httpService.post(`${this.aiUrl}/api/v1/blog/enhance`, { outline }, { timeout: 120000 })
+      );
+      return response.data;
+    } catch (error) {
+      console.error('AI Blog Enhance Error:', error.message);
+      throw new InternalServerErrorException('AI Engine failed to enhance blog post');
+    }
   }
 }

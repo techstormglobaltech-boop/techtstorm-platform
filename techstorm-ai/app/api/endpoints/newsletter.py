@@ -2,12 +2,12 @@ from fastapi import APIRouter, HTTPException
 import feedparser
 from bs4 import BeautifulSoup
 import os
-from openai import OpenAI
+from huggingface_hub import InferenceClient
 
 router = APIRouter()
 
-# Assuming OpenAI is configured in the environment
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_API_KEY")
+client = InferenceClient(token=hf_token)
 
 RSS_FEEDS = [
     "https://techcrunch.com/feed/",
@@ -18,14 +18,17 @@ RSS_FEEDS = [
 def fetch_top_news():
     articles = []
     for url in RSS_FEEDS:
-        feed = feedparser.parse(url)
-        for entry in feed.entries[:3]: # top 3 from each
-            summary = BeautifulSoup(entry.summary, "html.parser").get_text() if hasattr(entry, 'summary') else ""
-            articles.append({
-                "title": entry.title,
-                "link": entry.link,
-                "summary": summary[:300] + "..."
-            })
+        try:
+            feed = feedparser.parse(url)
+            for entry in feed.entries[:3]:
+                summary = BeautifulSoup(entry.summary, "html.parser").get_text() if hasattr(entry, 'summary') else ""
+                articles.append({
+                    "title": entry.title,
+                    "link": entry.link,
+                    "summary": summary[:300] + "..."
+                })
+        except Exception as e:
+            print(f"Failed to fetch from {url}: {e}")
     return articles
 
 @router.post("/generate")
@@ -49,13 +52,31 @@ Structure:
 Output only the Markdown content without any surrounding markdown code block syntax.
 """
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
+        models_to_try = [
+            "meta-llama/Llama-3.3-70B-Instruct",
+            "Qwen/Qwen2.5-72B-Instruct",
+            "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        ]
         
-        content = response.choices[0].message.content
+        content = ""
+        for model_name in models_to_try:
+            try:
+                print(f"Attempting newsletter generation with model: {model_name}")
+                messages = [{"role": "user", "content": prompt}]
+                response = client.chat_completion(
+                    messages,
+                    model=model_name,
+                    max_tokens=2000,
+                    temperature=0.7,
+                )
+                content = response.choices[0].message.content.strip()
+                break
+            except Exception as e:
+                print(f"Model {model_name} failed: {e}")
+                continue
+                
+        if not content:
+            raise Exception("All models failed to generate newsletter")
         
         # Extract title if it's the first line
         lines = content.strip().split('\n')

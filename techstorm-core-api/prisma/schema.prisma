@@ -68,6 +68,7 @@ model User {
   submissions     AssignmentSubmission[]
   meetings        Meeting[] @relation("MentorMeetings")
   menteeMeetings  Meeting[] @relation("MenteeMeetings")
+  blogPosts       BlogPost[]
 }
 
 model Course {
@@ -341,4 +342,23 @@ model Newsletter {
   content     String   @db.Text
   generatedAt DateTime @default(now())
   isPublished Boolean  @default(true)
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String?  @db.Text
+  content     String   @db.Text
+  coverImage  String?
+  tags        String[]
+  readTime    Int      @default(5)
+  isPublished Boolean  @default(false)
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

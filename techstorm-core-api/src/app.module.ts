@@ -20,6 +20,7 @@ import { TestimonialsModule } from './testimonials/testimonials.module';
 import { SponsorsModule } from './sponsors/sponsors.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NewslettersModule } from './newsletters/newsletters.module';
+import { BlogModule } from './blog/blog.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -44,6 +45,7 @@ import { NewslettersModule } from './newsletters/newsletters.module';
     TestimonialsModule,
     SponsorsModule,
     NewslettersModule,
+    BlogModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [],
