@@ -9,3 +9,5 @@ pandas
 numpy
 scikit-learn
 huggingface_hub
+feedparser
+beautifulsoup4

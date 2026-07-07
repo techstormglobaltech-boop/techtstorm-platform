@@ -96,4 +96,16 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       };
     }
   }
+
+  async generateNewsletter() {
+    try {
+      const response = await firstValueFrom<any>(
+        this.httpService.post(`${this.aiUrl}/api/v1/newsletter/generate`, {}, { timeout: 120000 })
+      );
+      return response.data; // Expected to return a markdown string
+    } catch (error) {
+      console.error('AI Newsletter Error:', error.message);
+      throw new InternalServerErrorException('AI Engine failed to generate newsletter');
+    }
+  }
 }

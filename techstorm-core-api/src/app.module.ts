@@ -18,7 +18,8 @@ import { InvitationsModule } from './invitations/invitations.module';
 import { UsersModule } from './users/users.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
 import { SponsorsModule } from './sponsors/sponsors.module';
-
+import { ScheduleModule } from '@nestjs/schedule';
+import { NewslettersModule } from './newsletters/newsletters.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,6 +43,8 @@ import { SponsorsModule } from './sponsors/sponsors.module';
     UsersModule,
     TestimonialsModule,
     SponsorsModule,
+    NewslettersModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
   providers: [],

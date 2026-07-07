@@ -334,3 +334,11 @@ model Sponsor {
   order     Int      @default(0)
   createdAt DateTime @default(now())
 }
+
+model Newsletter {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  generatedAt DateTime @default(now())
+  isPublished Boolean  @default(true)
+}
