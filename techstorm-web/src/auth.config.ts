@@ -44,7 +44,13 @@ export const authConfig = {
         if (userRole === UserRole.ADMIN) redirectUrl = "/admin";
         else if (userRole === UserRole.MENTOR) redirectUrl = "/mentor";
         
-        return Response.redirect(new URL(redirectUrl, nextUrl));
+        // Use the actual host from the request headers to prevent cross-origin CORS issues 
+        // between www and non-www domains.
+        const host = request.headers.get("host") || nextUrl.host;
+        const protocol = request.headers.get("x-forwarded-proto") || "https";
+        const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3000" : `${protocol}://${host}`;
+        
+        return Response.redirect(new URL(redirectUrl, baseUrl));
       }
 
       return true;

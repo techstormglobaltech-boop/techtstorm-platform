@@ -37,6 +37,19 @@ export class ContentService {
     return this.prisma.module.delete({ where: { id: moduleId } });
   }
 
+  async reorderModules(userId: string, courseId: string, orderedModuleIds: string[]) {
+    await this.validateOwnership(userId, courseId);
+    
+    return this.prisma.$transaction(
+      orderedModuleIds.map((id, index) => 
+        this.prisma.module.update({
+          where: { id },
+          data: { position: index }
+        })
+      )
+    );
+  }
+
   // LESSONS
   async createLesson(userId: string, moduleId: string, title: string) {
     const module = await this.prisma.module.findUnique({

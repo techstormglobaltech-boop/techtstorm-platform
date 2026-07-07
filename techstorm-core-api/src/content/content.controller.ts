@@ -18,6 +18,11 @@ export class ContentController {
     return this.contentService.deleteModule(req.user.userId, id);
   }
 
+  @Patch('modules/reorder')
+  reorderModules(@Request() req, @Body() body: { courseId: string; orderedModuleIds: string[] }) {
+    return this.contentService.reorderModules(req.user.userId, body.courseId, body.orderedModuleIds);
+  }
+
   // LESSONS
   @Post('lessons')
   createLesson(@Request() req, @Body() body: { moduleId: string; title: string; courseId: string }) {

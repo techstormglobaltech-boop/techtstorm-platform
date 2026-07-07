@@ -50,6 +50,19 @@ export async function deleteModule(moduleId: string, courseId: string) {
   }
 }
 
+export async function reorderModules(courseId: string, orderedModuleIds: string[]) {
+  try {
+    await fetchApi("/content/modules/reorder", {
+      method: "PATCH",
+      body: JSON.stringify({ courseId, orderedModuleIds }),
+    });
+    revalidatePath(`/mentor/courses/${courseId}`);
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to reorder modules" };
+  }
+}
+
 // LESSON ACTIONS
 export async function createLesson(moduleId: string, title: string, courseId: string) {
   try {

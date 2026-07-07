@@ -1,12 +1,14 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { 
     createModule, deleteModule, 
     createLesson, updateLesson, deleteLesson,
     saveQuiz, addQuestion, deleteQuestion,
     saveAssignment, generateQuizFromAI,
-    addLessonAttachment, deleteLessonAttachment
+    addLessonAttachment, deleteLessonAttachment,
+    reorderModules
 } from "@/app/actions/course-edit";
+import { Reorder } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -23,6 +25,18 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [lessonForm, setLessonForm] = useState<any>({});
   const [activeLessonTab, setActiveLessonTab] = useState<"content" | "quiz" | "assignment">("content");
+  
+  const [modules, setModules] = useState(course.modules);
+
+  useEffect(() => {
+    setModules(course.modules);
+  }, [course.modules]);
+
+  const handleReorder = async (newOrder: any[]) => {
+    setModules(newOrder);
+    const orderedIds = newOrder.map((m: any) => m.id);
+    await reorderModules(course.id, orderedIds);
+  };
   
   // Modal states
   const [moduleModal, setModuleModal] = useState({ isOpen: false, title: "" });
@@ -239,9 +253,14 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
             </button>
         </div>
 
-        <div className={`space-y-4 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
-            {course.modules.map((module: any) => (
-                <div key={module.id} className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden">
+        <Reorder.Group 
+            axis="y" 
+            values={modules} 
+            onReorder={handleReorder} 
+            className={`space-y-4 transition-opacity ${isPending ? 'opacity-50' : ''}`}
+        >
+            {modules.map((module: any) => (
+                <Reorder.Item key={module.id} value={module} className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden">
                     {/* Module Header */}
                     <div className="bg-slate-50 p-4 flex justify-between items-center border-b border-slate-100">
                         <div className="flex items-center gap-3">
@@ -583,10 +602,10 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                             </div>
                         )}
                     </div>
-                </div>
+                </Reorder.Item>
             ))}
             
-            {course.modules.length === 0 && (
+            {modules.length === 0 && (
                 <div className="text-center py-10 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">
                     Start by adding a module to your course.
                 </div>
