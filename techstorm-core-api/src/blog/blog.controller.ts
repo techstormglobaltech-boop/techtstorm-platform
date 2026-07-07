@@ -29,7 +29,7 @@ export class BlogController {
   @Post()
   createPost(@Body() data: any, @Req() req: any) {
     if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') throw new UnauthorizedException('Admin only');
-    return this.blogService.createPost(data, req.user.id);
+    return this.blogService.createPost(data, req.user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'))
