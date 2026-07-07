@@ -147,6 +147,32 @@ export default function BlogManager({ token }: { token?: string }) {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", "course-content"); // Using existing bucket or we can create a new one
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) setCoverImage(data.url);
+      } else {
+        alert("Image upload failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading image.");
+    }
+  };
+
   if (isEditing) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 space-y-6">
@@ -219,16 +245,22 @@ export default function BlogManager({ token }: { token?: string }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Cover Image URL</label>
-              <input 
-                type="text" 
-                value={coverImage} 
-                onChange={e => setCoverImage(e.target.value)} 
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-teal outline-none text-sm"
-                placeholder="https://..."
-              />
+              <label className="block text-sm font-medium text-slate-700 mb-1">Cover Image</label>
+              <div className="flex items-center gap-2 mb-2">
+                <input 
+                  type="text" 
+                  value={coverImage} 
+                  onChange={e => setCoverImage(e.target.value)} 
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-brand-teal outline-none text-sm"
+                  placeholder="Image URL or upload..."
+                />
+                <label className="cursor-pointer bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0">
+                  <i className="fas fa-upload"></i>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                </label>
+              </div>
               {coverImage && (
-                <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden border">
+                <div className="relative w-full h-32 rounded-lg overflow-hidden border bg-slate-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={coverImage} alt="Cover Preview" className="object-cover w-full h-full" />
                 </div>
