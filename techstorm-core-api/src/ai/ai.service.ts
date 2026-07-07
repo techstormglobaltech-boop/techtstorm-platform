@@ -107,6 +107,8 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       console.error('AI Newsletter Error:', error.message);
       throw new InternalServerErrorException('AI Engine failed to generate newsletter');
     }
+  }
+
   async enhanceBlog(outline: string) {
     try {
       const response = await firstValueFrom<any>(
