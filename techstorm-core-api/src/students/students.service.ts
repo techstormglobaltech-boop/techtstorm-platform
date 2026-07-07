@@ -419,14 +419,19 @@ export class StudentsService {
   }
 
   async getMenteeDashboardData(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    
     const enrollments = await this.prisma.enrollment.findMany({
       where: { userId },
       include: {
         course: {
           include: {
+            instructor: { select: { name: true } },
             modules: {
+              orderBy: { position: 'asc' },
               include: {
                 lessons: {
+                  orderBy: { position: 'asc' },
                   include: {
                     userProgress: { where: { userId } },
                   },
@@ -440,40 +445,71 @@ export class StudentsService {
 
     let totalLessons = 0;
     let completedLessons = 0;
+    let jumpBackCourse = null;
 
     const courses = enrollments.map((e) => {
       const course = e.course;
       let courseTotal = 0;
       let courseCompleted = 0;
+      let nextLessonTitle = "Start Course";
+      let foundNext = false;
 
       course.modules.forEach((mod) => {
         mod.lessons.forEach((lesson) => {
           courseTotal++;
           totalLessons++;
-          if (lesson.userProgress.length > 0 && lesson.userProgress[0].isCompleted) {
+          const isCompleted = lesson.userProgress.length > 0 && lesson.userProgress[0].isCompleted;
+          if (isCompleted) {
             courseCompleted++;
             completedLessons++;
+          } else if (!foundNext) {
+             nextLessonTitle = lesson.title;
+             foundNext = true;
           }
         });
       });
 
-      const progress =
-        courseTotal === 0 ? 0 : Math.round((courseCompleted / courseTotal) * 100);
+      const progress = courseTotal === 0 ? 0 : Math.round((courseCompleted / courseTotal) * 100);
 
-      return {
+      const courseData = {
         id: course.id,
         title: course.title,
+        image: course.image,
         progress,
+        totalLessons: courseTotal,
+        completedLessons: courseCompleted,
+        nextLessonTitle,
       };
+
+      if (!jumpBackCourse && progress < 100 && progress > 0) {
+        jumpBackCourse = courseData;
+      }
+
+      return courseData;
+    });
+
+    if (!jumpBackCourse && courses.length > 0) {
+      jumpBackCourse = courses.find(c => c.progress < 100) || courses[0];
+    }
+
+    const enrolledIds = enrollments.map(e => e.courseId);
+    const recommendations = await this.prisma.course.findMany({
+      where: {
+        id: { notIn: enrolledIds },
+      },
+      take: 4,
+      include: { instructor: { select: { name: true } } },
     });
 
     return {
+      user: { name: user?.name },
       totalCourses: enrollments.length,
-      totalLessons,
-      completedLessons,
-      overallProgress:
-        totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100),
+      totalCompletedLessons: completedLessons,
+      overallProgress: totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100),
       courses,
+      jumpBackCourse,
+      recommendations,
+      streak: 3,
     };
   }
 }
