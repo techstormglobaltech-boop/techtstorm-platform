@@ -73,11 +73,11 @@ export default function Footer() {
                         </li>
                         <li className="flex items-start gap-3">
                             <i className="fas fa-envelope mt-1 text-brand-teal"></i>
-                            <a href="mailto:info@techstormglobal.com" className="hover:text-white transition-colors">info@techstormglobal.com</a>
+                            <a href="mailto:millsclifford10@gmail.com" className="hover:text-white transition-colors">millsclifford10@gmail.com</a>
                         </li>
                         <li className="flex items-start gap-3">
                             <i className="fas fa-phone mt-1 text-brand-teal"></i>
-                            <a href="tel:+233249438890" className="hover:text-white transition-colors">+233 24 943 8890</a>
+                            <a href="tel:+233548684980" className="hover:text-white transition-colors">+233 54 868 4980</a>
                         </li>
                     </ul>
                 </div>
