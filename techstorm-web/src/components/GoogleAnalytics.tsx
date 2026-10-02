@@ -3,15 +3,15 @@
 import Script from "next/script";
 import { useCookieConsent } from "./ui/CookieConsentProvider";
 import { useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function GoogleAnalytics() {
   const { consent } = useCookieConsent();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   useEffect(() => {
-    // If the user has consented to analytics, we push the config to the dataLayer
-    // This handles the case where the script is loaded, but we only want to track
-    // pageviews after consent is explicitly granted.
     if (consent?.analytics && measurementId) {
       // @ts-expect-error - Google Analytics dataLayer
       window.dataLayer = window.dataLayer || [];
@@ -19,25 +19,35 @@ export default function GoogleAnalytics() {
         // @ts-expect-error - Google Analytics dataLayer
         window.dataLayer.push(args);
       }
-      gtag('js', new Date());
-      gtag('config', measurementId, {
-        page_path: window.location.pathname,
-      });
+      
+      // Initialize if not already initialized
+      // @ts-expect-error - custom property
+      if (!window.gtagInitialized) {
+        gtag('js', new Date());
+        // @ts-expect-error - custom property
+        window.gtagInitialized = true;
+      }
+
+      // Next.js client-side navigation can be so fast that the <title> hasn't updated in the DOM yet.
+      // We use a small timeout to let the metadata title update before sending the pageview.
+      const timeoutId = setTimeout(() => {
+        const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
+        gtag('config', measurementId, {
+          page_path: url,
+          page_title: document.title,
+        });
+      }, 150);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [consent?.analytics, measurementId]);
+  }, [consent?.analytics, measurementId, pathname, searchParams]);
 
-  // If no measurement ID is provided, don't render anything
-  if (!measurementId) return null;
-
-  // If the user hasn't consented to analytics, don't load the script at all
-  if (!consent?.analytics) return null;
+  if (!measurementId || !consent?.analytics) return null;
 
   return (
-    <>
-      <Script
-        strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
-      />
-    </>
+    <Script
+      strategy="afterInteractive"
+      src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+    />
   );
 }
