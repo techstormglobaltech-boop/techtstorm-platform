@@ -1,14 +1,30 @@
 "use client";
 import { useState, FormEvent } from 'react';
 import Reveal from "@/components/ui/Reveal";
+import { submitContactForm } from "@/app/actions/contact";
+import toast from "react-hot-toast";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    alert(`Thank you, ${formData.name}! We have received your message.`);
-    setFormData({ name: '', email: '', message: '' });
+    setIsSubmitting(true);
+    
+    try {
+      const res = await submitContactForm(formData);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success(res.message || "Message sent successfully!");
+        setFormData({ name: '', email: '', message: '' });
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,8 +83,8 @@ export default function Contact() {
                                 required
                             ></textarea>
                         </div>
-                        <button type="submit" className="w-full bg-brand-amber text-brand-dark font-bold py-4 rounded-lg hover:bg-[#e6a200] transition-transform transform hover:-translate-y-1 shadow-md">
-                            Send Message
+                        <button type="submit" disabled={isSubmitting} className="w-full bg-brand-amber text-brand-dark font-bold py-4 rounded-lg hover:bg-[#e6a200] transition-transform transform hover:-translate-y-1 shadow-md disabled:opacity-70 disabled:hover:translate-y-0">
+                            {isSubmitting ? "Sending Message..." : "Send Message"}
                         </button>
                     </form>
                 </div>
