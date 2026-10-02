@@ -1,4 +1,10 @@
 export default function EarningsPage() {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Mentor - Earnings',
+};
+
   return (
     <div className="space-y-8">
       <div>

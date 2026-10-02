@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Services',
+};
+
 
 export default function Services() {
   return (

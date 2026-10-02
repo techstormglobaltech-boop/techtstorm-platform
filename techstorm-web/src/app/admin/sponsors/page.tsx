@@ -1,5 +1,11 @@
 import { getSponsors } from "@/app/actions/admin/sponsors";
 import SponsorsList from "@/components/admin/sponsors/SponsorsList";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin - Sponsors',
+};
+
 
 export default async function SponsorsPage() {
   const sponsors = await getSponsors();

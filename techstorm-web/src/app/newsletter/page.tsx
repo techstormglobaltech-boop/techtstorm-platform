@@ -3,6 +3,12 @@ import ReactMarkdown from "react-markdown";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Newsletter',
+};
+
 
 export default async function NewsletterPage() {
   const [latestNewsletter, allNewsletters] = await Promise.all([

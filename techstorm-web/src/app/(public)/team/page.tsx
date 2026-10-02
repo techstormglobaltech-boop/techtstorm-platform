@@ -3,6 +3,12 @@ import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 import { getPublicMentors } from "@/app/actions/profile";
 import { getTeamMembers } from "@/app/actions/team";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Team',
+};
+
 
 export default async function Team() {
   const [mentors, teamMembers] = await Promise.all([

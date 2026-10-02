@@ -1,6 +1,12 @@
 import { acceptInvitation } from "@/app/actions/invitations";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Invite - Accept',
+};
+
 
 export default async function AcceptInvitePage({ searchParams }: { searchParams: Promise<{ token: string }> }) {
   const { token } = await searchParams;

@@ -18,7 +18,10 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "TechStorm Global | Mentorship & Growth",
+  title: {
+    template: "%s | TechStorm Global",
+    default: "TechStorm Global | Mentorship & Growth",
+  },
   description: "Join TechStorm to connect with experts in AI, Data Science, and Programming. Empowering you to learn, grow, and lead.",
 };
 

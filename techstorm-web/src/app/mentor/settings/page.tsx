@@ -1,5 +1,11 @@
 import { getMyProfile } from "@/app/actions/profile";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Mentor - Settings',
+};
+
 
 export default async function SettingsPage() {
   const profile = await getMyProfile();

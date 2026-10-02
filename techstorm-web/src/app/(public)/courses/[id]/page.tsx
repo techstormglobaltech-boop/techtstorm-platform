@@ -2,6 +2,12 @@ import { getCourseById } from "@/app/actions/public-course";
 import CourseDetail from "@/components/public/CourseDetail";
 import { auth } from "@/auth";
 import { checkEnrollment } from "@/app/actions/enrollment";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Courses',
+};
+
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Reveal from "@/components/ui/Reveal";
 import { getPublicTestimonials } from "@/app/actions/testimonials";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Testimonials',
+};
+
 
 export default async function Testimonials() {
   const testimonials = await getPublicTestimonials();

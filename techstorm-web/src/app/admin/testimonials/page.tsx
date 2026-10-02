@@ -1,5 +1,11 @@
 import { getTestimonials } from "@/app/actions/admin/testimonials";
 import TestimonialsList from "@/components/admin/testimonials/TestimonialsList";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin - Testimonials',
+};
+
 
 export default async function TestimonialsPage() {
   const testimonials = await getTestimonials();

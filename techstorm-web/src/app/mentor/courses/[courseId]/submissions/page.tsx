@@ -1,6 +1,12 @@
 import { getSubmissionsForMentor } from "@/app/actions/submissions";
 import SubmissionsManager from "@/components/mentor/SubmissionsManager";
 import Link from "next/link";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Mentor - Courses - Submissions',
+};
+
 
 export default async function SubmissionsPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params;

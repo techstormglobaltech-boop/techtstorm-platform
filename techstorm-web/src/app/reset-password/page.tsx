@@ -2,6 +2,12 @@ import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Reset Password',
+};
+
 
 export default function ResetPasswordPage() {
   return (

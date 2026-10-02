@@ -4,6 +4,12 @@ import AdminStatsCard from "@/components/admin/dashboard/AdminStatsCard";
 import PendingTasks from "@/components/admin/dashboard/PendingTasks";
 import ActivityFeed from "@/components/admin/dashboard/ActivityFeed";
 import QuickActions from "@/components/admin/dashboard/QuickActions";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin',
+};
+
 
 export default async function AdminDashboard() {
   const stats = await getAdminStats();

@@ -1,6 +1,12 @@
 import { getMentorStats } from "@/app/actions/mentor-stats";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Mentor',
+};
+
 
 export default async function MentorDashboard() {
   const stats = await getMentorStats();

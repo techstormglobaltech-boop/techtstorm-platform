@@ -3,6 +3,12 @@ import Link from "next/link";
 import { getMenteeDashboardData } from "@/app/actions/learning";
 import { getMenteeMeetings } from "@/app/actions/meetings";
 import { getStudentAchievements } from "@/app/actions/achievements";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Mentee',
+};
+
 
 export default async function MenteeDashboard() {
   const [dashboardData, meetings, achievementsData] = await Promise.all([
