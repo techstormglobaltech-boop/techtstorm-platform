@@ -120,4 +120,20 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       throw new InternalServerErrorException('AI Engine failed to enhance blog post');
     }
   }
+
+  async reviewCode(code: string, assignmentDescription: string) {
+    try {
+      const response = await firstValueFrom<any>(
+        this.httpService.post(
+          `${this.aiUrl}/api/v1/code-review/socratic`, 
+          { code, assignmentDescription },
+          { timeout: 60000 }
+        )
+      );
+      return response.data;
+    } catch (error) {
+      console.error('AI Code Review Error:', error.message);
+      throw new InternalServerErrorException('AI Engine failed to review code');
+    }
+  }
 }

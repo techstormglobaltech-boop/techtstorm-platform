@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import CookiePreferencesButton from './ui/CookiePreferencesButton';
 
 export default function Footer() {
   return (
@@ -84,9 +85,10 @@ export default function Footer() {
 
             <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
                 <p>&copy; {new Date().getFullYear()} TechStorm Global. All rights reserved.</p>
-                <div className="flex gap-6">
+                <div className="flex gap-6 items-center">
                     <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
                     <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
+                    <CookiePreferencesButton />
                 </div>
             </div>
         </div>

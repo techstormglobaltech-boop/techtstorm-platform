@@ -21,8 +21,9 @@ app.add_middleware(
 def read_root():
     return {"message": "TechStorm AI Engine is Online"}
 
-from app.api.endpoints import course_generator, reports, quiz, newsletter
+from app.api.endpoints import course_generator, reports, quiz, newsletter, code_reviewer
 app.include_router(course_generator.router, prefix="/api/v1/course", tags=["course"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(quiz.router, prefix="/api/v1/quiz", tags=["quiz"])
 app.include_router(newsletter.router, prefix="/api/v1/newsletter", tags=["newsletter"])
+app.include_router(code_reviewer.router, prefix="/api/v1/code-review", tags=["code-review"])

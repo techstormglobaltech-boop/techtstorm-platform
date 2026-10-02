@@ -4,6 +4,7 @@ import Link from "next/link";
 import { markLessonComplete } from "@/app/actions/lesson";
 import { useRouter, useSearchParams } from "next/navigation";
 import LessonQuiz from "./LessonQuiz";
+import CodeAssignmentEditor from "./CodeAssignmentEditor";
 import { submitAssignment } from "@/app/actions/submissions";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,16 +67,17 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
       );
   };
 
-  const handleAssignmentSubmit = async (assignmentId: string) => {
-    if (!submissionContent && !submissionFile) {
+  const handleAssignmentSubmit = async (assignmentId: string, customContent?: string) => {
+    const contentToSubmit = customContent !== undefined ? customContent : submissionContent;
+    if (!contentToSubmit && !submissionFile) {
         toast.error("Please provide text or upload a file.");
         return;
     }
     setIsSubmittingAssignment(true);
     // Combine text and file link if both exist
     const finalContent = submissionFile 
-        ? `${submissionContent}\n\n[Attached File]: ${submissionFile}` 
-        : submissionContent;
+        ? `${contentToSubmit}\n\n[Attached File]: ${submissionFile}` 
+        : contentToSubmit;
 
     const result = await submitAssignment(assignmentId, finalContent);
     setIsSubmittingAssignment(false);
@@ -415,39 +417,25 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="bg-slate-50 rounded-xl p-8 border border-slate-200">
-                                                    <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                                        <i className="fas fa-paper-plane text-brand-teal"></i> Submit Your Work
-                                                    </h4>
-                                                    <p className="text-sm text-slate-500 mb-6">Type your answer or upload a file (PDF, Doc, Zip).</p>
-                                                    
-                                                    <div className="mb-4">
+                                                <div className="mt-6">
+                                                    <CodeAssignmentEditor 
+                                                        assignmentId={activeLesson.assignments[0].id}
+                                                        description={activeLesson.assignments[0].description}
+                                                        isSubmitting={isSubmittingAssignment}
+                                                        onSubmit={async (content) => {
+                                                            await handleAssignmentSubmit(activeLesson.assignments[0].id, content);
+                                                        }}
+                                                    />
+                                                    <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                                        <p className="text-sm text-slate-500 mb-2 font-medium">Or attach a supplementary file (Optional):</p>
                                                         <FileUploader 
-                                                            label="Attach File (Optional)" 
+                                                            label="Upload File" 
                                                             bucket="submissions"
                                                             onUploadComplete={(url) => setSubmissionFile(url)}
                                                         />
-                                                    </div>
-
-                                                    <textarea 
-                                                        className="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-teal/20 focus:border-brand-teal outline-none mb-4 min-h-[150px] bg-white transition-all resize-y text-slate-700"
-                                                        placeholder="Type your submission here..."
-                                                        value={submissionContent}
-                                                        onChange={(e) => setSubmissionContent(e.target.value)}
-                                                    ></textarea>
-
-                                                    <div className="flex justify-end">
-                                                        <button 
-                                                            onClick={() => handleAssignmentSubmit(activeLesson.assignments[0].id)}
-                                                            disabled={isSubmittingAssignment || (!submissionContent && !submissionFile)}
-                                                            className="bg-brand-teal text-white px-8 py-3 rounded-xl font-bold hover:bg-[#006066] transition-all shadow-md disabled:opacity-50 hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
-                                                        >
-                                                            {isSubmittingAssignment ? (
-                                                                <><i className="fas fa-spinner fa-spin mr-2"></i> Submitting...</>
-                                                            ) : (
-                                                                <>Submit Assignment <i className="fas fa-arrow-right ml-2"></i></>
-                                                            )}
-                                                        </button>
+                                                        {submissionFile && (
+                                                            <p className="text-xs text-brand-teal mt-2"><i className="fas fa-check-circle"></i> File uploaded and ready to be attached to your submission.</p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}

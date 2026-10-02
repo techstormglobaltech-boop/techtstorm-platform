@@ -1,10 +1,12 @@
 import { Module, Global } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { AiService } from './ai.service';
+import { AiController } from './ai.controller';
 
 @Global()
 @Module({
   imports: [HttpModule],
+  controllers: [AiController],
   providers: [AiService],
   exports: [AiService],
 })
