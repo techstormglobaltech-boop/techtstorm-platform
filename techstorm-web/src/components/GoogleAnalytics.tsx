@@ -13,13 +13,13 @@ export default function GoogleAnalytics() {
     // This handles the case where the script is loaded, but we only want to track
     // pageviews after consent is explicitly granted.
     if (consent?.analytics && measurementId) {
-      // @ts-ignore
+      // @ts-expect-error - Google Analytics dataLayer
       window.dataLayer = window.dataLayer || [];
-      // @ts-ignore
-      function gtag(){dataLayer.push(arguments);}
-      // @ts-ignore
+      function gtag(...args: any[]){
+        // @ts-expect-error - Google Analytics dataLayer
+        window.dataLayer.push(args);
+      }
       gtag('js', new Date());
-      // @ts-ignore
       gtag('config', measurementId, {
         page_path: window.location.pathname,
       });
