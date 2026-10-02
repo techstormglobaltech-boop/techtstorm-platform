@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useCookieConsent } from "./ui/CookieConsentProvider";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export default function GoogleAnalytics() {
@@ -11,43 +11,69 @@ export default function GoogleAnalytics() {
   const searchParams = useSearchParams();
   const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-  useEffect(() => {
-    if (consent?.analytics && measurementId) {
-      // @ts-expect-error - Google Analytics dataLayer
-      window.dataLayer = window.dataLayer || [];
-      function gtag(...args: any[]){
-        // @ts-expect-error - Google Analytics dataLayer
-        window.dataLayer.push(args);
-      }
-      
-      // Initialize if not already initialized
-      // @ts-expect-error - custom property
-      if (!window.gtagInitialized) {
-        gtag('js', new Date());
-        // @ts-expect-error - custom property
-        window.gtagInitialized = true;
-      }
+  // Ensure we only run client-side logic after mount
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-      // Next.js client-side navigation can be so fast that the <title> hasn't updated in the DOM yet.
-      // We use a small timeout to let the metadata title update before sending the pageview.
+  // 1. Update Consent Mode when the user's preferences change
+  useEffect(() => {
+    if (measurementId && window.gtag) {
+      // @ts-expect-error - gtag defined in script below
+      window.gtag('consent', 'update', {
+        'analytics_storage': consent?.analytics ? 'granted' : 'denied',
+        'ad_storage': consent?.marketing ? 'granted' : 'denied',
+        'ad_user_data': consent?.marketing ? 'granted' : 'denied',
+        'ad_personalization': consent?.marketing ? 'granted' : 'denied'
+      });
+    }
+  }, [consent, measurementId]);
+
+  // 2. Track Route Changes
+  useEffect(() => {
+    if (measurementId && window.gtag) {
       const timeoutId = setTimeout(() => {
         const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
-        gtag('config', measurementId, {
+        // @ts-expect-error
+        window.gtag('config', measurementId, {
           page_path: url,
           page_title: document.title,
         });
       }, 150);
-
       return () => clearTimeout(timeoutId);
     }
-  }, [consent?.analytics, measurementId, pathname, searchParams]);
+  }, [pathname, searchParams, measurementId]);
 
-  if (!measurementId || !consent?.analytics) return null;
+  if (!measurementId || !mounted) return null;
 
   return (
-    <Script
-      strategy="afterInteractive"
-      src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
-    />
+    <>
+      {/* Default Consent State (Must run before gtag.js loads) */}
+      <Script id="ga-consent-default" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          
+          // Set default consent state to DENIED
+          gtag('consent', 'default', {
+            'analytics_storage': '${consent?.analytics ? 'granted' : 'denied'}',
+            'ad_storage': '${consent?.marketing ? 'granted' : 'denied'}',
+            'ad_user_data': '${consent?.marketing ? 'granted' : 'denied'}',
+            'ad_personalization': '${consent?.marketing ? 'granted' : 'denied'}',
+            'wait_for_update': 500
+          });
+
+          gtag('js', new Date());
+          gtag('config', '${measurementId}', {
+            page_path: window.location.pathname,
+          });
+        `}
+      </Script>
+      
+      {/* Always load the GA4 Script. It will respect the consent state above. */}
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+      />
+    </>
   );
 }
