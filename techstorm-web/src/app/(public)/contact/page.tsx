@@ -110,7 +110,7 @@ export default function Contact() {
                             </div>
                             <div>
                                 <h4 className="font-bold text-brand-dark">Call Us</h4>
-                                <p className="text-text-gray text-sm">+233 24 943 8890</p>
+                                <p className="text-text-gray text-sm">+233 54 868 4980</p>
                             </div>
                         </div>
 

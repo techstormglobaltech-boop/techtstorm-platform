@@ -17,7 +17,7 @@ export async function submitContactForm(formData: { name: string; email: string;
 
     await resend.emails.send({
       from: 'TechStorm Global <noreply@techstormglobal.com>', // Update to onboarding@resend.dev if domain not verified yet
-      to: 'Info@techstormglobal.com',
+      to: 'millsclifford10@gmail.com',
       replyTo: email,
       subject: `New Contact Form Submission from ${name}`,
       html: `
