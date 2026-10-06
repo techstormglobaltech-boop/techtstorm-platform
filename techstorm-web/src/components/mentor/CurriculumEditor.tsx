@@ -227,9 +227,18 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
 
   const saveLesson = async () => {
     if (!editingLessonId) return;
-    await updateLesson(editingLessonId, lessonForm, course.id);
-    setEditingLessonId(null);
-    router.refresh();
+    setIsSubmitting(true);
+    try {
+      await updateLesson(editingLessonId, lessonForm, course.id);
+      setEditingLessonId(null);
+      router.refresh();
+      toast.success("Lesson updated successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update lesson.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAttachmentUpload = async (url: string, fileData: any) => {
@@ -581,9 +590,10 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                             </button>
                                             <button 
                                                 onClick={saveLesson}
-                                                className="text-xs bg-brand-teal text-white px-3 py-1.5 rounded hover:bg-[#006066]"
+                                                disabled={isSubmitting}
+                                                className={`text-xs text-white px-3 py-1.5 rounded flex items-center gap-2 transition-all ${isSubmitting ? 'bg-slate-400 cursor-not-allowed' : 'bg-brand-teal hover:bg-[#006066]'}`}
                                             >
-                                                Save Changes
+                                                {isSubmitting ? <><i className="fas fa-spinner fa-spin"></i> Saving...</> : "Save Changes"}
                                             </button>
                                         </div>
                                     </div>
