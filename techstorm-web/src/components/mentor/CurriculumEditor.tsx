@@ -411,9 +411,9 @@ export default function CurriculumEditor({ course }: CurriculumEditorProps) {
                                                     )}
 
                                                     <FileUploader 
-                                                        label="Add Attachment (PDF, Doc, Zip)"
+                                                        label="Add Attachment (Any File)"
                                                         bucket="course-content"
-                                                        accept=".pdf,.doc,.docx,.zip,.txt,.ppt,.pptx"
+                                                        accept="*"
                                                         onUploadComplete={handleAttachmentUpload}
                                                     />
                                                 </div>
