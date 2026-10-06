@@ -313,34 +313,7 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                         )}
                                     </div>
 
-                                    {/* ATTACHMENTS SECTION */}
-                                    {activeLesson.attachments && activeLesson.attachments.length > 0 && (
-                                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                                <i className="fas fa-paperclip text-brand-teal"></i> Lesson Resources
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {activeLesson.attachments.map((file: any) => (
-                                                    <a 
-                                                        key={file.id} 
-                                                        href={file.url} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50 transition-all group"
-                                                    >
-                                                        <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center shrink-0">
-                                                            <i className="fas fa-file-alt text-lg"></i>
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <p className="font-bold text-slate-700 truncate group-hover:text-brand-teal transition-colors">{file.name}</p>
-                                                            <p className="text-xs text-slate-400 uppercase">{file.type?.split('/').pop() || 'FILE'} • Download</p>
-                                                        </div>
-                                                        <i className="fas fa-download ml-auto text-slate-300 group-hover:text-brand-teal"></i>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+
                                 </div>
                             </div>
                         )}
@@ -450,6 +423,37 @@ export default function LessonPlayer({ course }: LessonPlayerProps) {
                                         <p className="text-slate-500">No practical work required for this lesson.</p>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* ATTACHMENTS SECTION (Applies to all lesson types) */}
+                        {activeLesson.attachments && activeLesson.attachments.length > 0 && (
+                            <div className="mt-8">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                        <i className="fas fa-paperclip text-brand-teal"></i> Lesson Resources
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {activeLesson.attachments.map((file: any) => (
+                                            <a 
+                                                key={file.id} 
+                                                href={file.url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-brand-teal/30 hover:bg-slate-50 transition-all group"
+                                            >
+                                                <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center shrink-0">
+                                                    <i className="fas fa-file-alt text-lg"></i>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-slate-700 truncate group-hover:text-brand-teal transition-colors">{file.name}</p>
+                                                    <p className="text-xs text-slate-400 uppercase">{file.type?.split('/').pop() || 'FILE'} • Download</p>
+                                                </div>
+                                                <i className="fas fa-download ml-auto text-slate-300 group-hover:text-brand-teal"></i>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </motion.div>

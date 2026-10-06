@@ -15,6 +15,7 @@ export class StudentsService {
             lessons: {
               orderBy: { position: 'asc' },
               include: {
+                attachments: true,
                 userProgress: { where: { userId } },
                 quizzes: {
                   include: {
