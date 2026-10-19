@@ -11,6 +11,7 @@ export async function updateProfile(data: { name: string; image?: string }) {
     });
 
     revalidatePath("/mentee/settings");
+    revalidatePath("/mentee", "layout");
     revalidatePath("/mentee"); // Update sidebar
     return { success: true };
   } catch (error) {

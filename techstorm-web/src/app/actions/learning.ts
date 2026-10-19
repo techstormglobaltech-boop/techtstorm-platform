@@ -19,6 +19,7 @@ export async function markLessonComplete(lessonId: string, completed: boolean = 
     });
     
     revalidatePath("/learn/[id]");
+    revalidatePath("/mentee");
     return { success: true };
   } catch (error) {
     return { error: "Failed to update progress" };

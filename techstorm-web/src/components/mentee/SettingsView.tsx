@@ -55,9 +55,19 @@ export default function SettingsView({ user }: SettingsViewProps) {
         const data = await res.json();
         if (data.success) {
             setProfileForm(prev => ({ ...prev, image: data.url }));
-            toast.success("Image uploaded!");
+            // Automatically persist avatar immediately so it reflects in sidebar and profile
+            const updateRes = await updateProfile({
+                name: profileForm.name,
+                image: data.url,
+            });
+            if (updateRes.success) {
+                toast.success("Profile photo updated!");
+                router.refresh();
+            } else {
+                toast.success("Image uploaded! Click 'Save Changes' to save.");
+            }
         } else {
-            toast.error("Upload failed");
+            toast.error(data.error || "Upload failed");
         }
     } catch (err) {
         toast.error("Error uploading image");
@@ -148,7 +158,13 @@ export default function SettingsView({ user }: SettingsViewProps) {
                 <div className="flex items-center gap-6">
                     <div className="relative w-24 h-24 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-100">
                         {profileForm.image ? (
-                            <Image src={profileForm.image} alt="Avatar" fill className="object-cover" />
+                            <Image 
+                                src={profileForm.image} 
+                                alt="Avatar" 
+                                fill 
+                                className="object-cover" 
+                                unoptimized 
+                            />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-slate-300 text-3xl">
                                 <i className="fas fa-user"></i>

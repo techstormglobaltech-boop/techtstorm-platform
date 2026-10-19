@@ -31,3 +31,7 @@ yarn-error.log*
 
 # AI Agent Customizations
 .agents/
+
+# Design references
+new-ui/
+patch.js

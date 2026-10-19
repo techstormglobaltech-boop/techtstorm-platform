@@ -1,11 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class StudentsService {
   constructor(private prisma: PrismaService) {}
 
-  async getCourseContent(userId: string, courseId: string) {
+  async getCourseContent(userId: string, courseId: string, userRole?: string) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
       include: {
@@ -36,6 +36,12 @@ export class StudentsService {
 
     if (!course) return null;
 
+    // Only allow viewing published courses, unless user is ADMIN or the instructor
+    const isPrivileged = userRole === 'ADMIN' || course.instructorId === userId;
+    if (course.status !== 'PUBLISHED' && !isPrivileged) {
+      return null;
+    }
+
     let completedCount = 0;
     let totalCount = 0;
 
@@ -59,16 +65,24 @@ export class StudentsService {
   }
 
   async markComplete(userId: string, lessonId: string, completed: boolean) {
-    return this.prisma.lessonProgress.upsert({
+    return (this.prisma.lessonProgress as any).upsert({
       where: {
         userId_lessonId: { userId, lessonId }
       },
-      update: { isCompleted: completed },
-      create: { userId, lessonId, isCompleted: completed }
+      update: { isCompleted: completed, updatedAt: new Date() },
+      create: { userId, lessonId, isCompleted: completed, updatedAt: new Date() }
     });
   }
 
   async enroll(userId: string, courseId: string) {
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+    });
+
+    if (!course || course.status !== 'PUBLISHED') {
+      throw new BadRequestException('Cannot enroll in an unpublished course.');
+    }
+
     const existingEnrollment = await this.prisma.enrollment.findUnique({
       where: {
         userId_courseId: { userId, courseId },
@@ -247,7 +261,10 @@ export class StudentsService {
 
   async getGrades(userId: string) {
     const enrollments = await this.prisma.enrollment.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        course: { status: 'PUBLISHED' },
+      },
       include: {
         course: {
           include: {
@@ -360,7 +377,10 @@ export class StudentsService {
 
   async getEnrolledCourses(userId: string) {
     return this.prisma.enrollment.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        course: { status: 'PUBLISHED' },
+      },
       include: {
         course: {
           select: { id: true, title: true },
@@ -371,7 +391,10 @@ export class StudentsService {
 
   async getMyCourses(userId: string) {
     const enrollments = await this.prisma.enrollment.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        course: { status: 'PUBLISHED' },
+      },
       include: {
         course: {
           include: {
@@ -423,7 +446,10 @@ export class StudentsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     
     const enrollments = await this.prisma.enrollment.findMany({
-      where: { userId },
+      where: { 
+        userId,
+        course: { status: 'PUBLISHED' },
+      },
       include: {
         course: {
           include: {
@@ -497,10 +523,41 @@ export class StudentsService {
     const recommendations = await this.prisma.course.findMany({
       where: {
         id: { notIn: enrolledIds },
+        status: 'PUBLISHED',
       },
       take: 4,
       include: { instructor: { select: { name: true } } },
     });
+
+    const [progressRecords, quizAttempts, submissions] = await Promise.all([
+      (this.prisma.lessonProgress as any).findMany({
+        where: { userId, isCompleted: true },
+        select: { updatedAt: true, createdAt: true },
+      }),
+      this.prisma.quizAttempt.findMany({
+        where: { userId },
+        select: { completedAt: true },
+      }),
+      this.prisma.assignmentSubmission.findMany({
+        where: { userId },
+        select: { submittedAt: true, updatedAt: true },
+      }),
+    ]);
+
+    const activityDates: Date[] = [];
+    progressRecords.forEach((p: any) => {
+      if (p.updatedAt) activityDates.push(p.updatedAt);
+      else if (p.createdAt) activityDates.push(p.createdAt);
+    });
+    quizAttempts.forEach((q) => {
+      if (q.completedAt) activityDates.push(q.completedAt);
+    });
+    submissions.forEach((s) => {
+      if (s.submittedAt) activityDates.push(s.submittedAt);
+      else if (s.updatedAt) activityDates.push(s.updatedAt);
+    });
+
+    const streak = this.calculateStreak(activityDates);
 
     return {
       user: { name: user?.name },
@@ -510,7 +567,63 @@ export class StudentsService {
       courses,
       jumpBackCourse,
       recommendations,
-      streak: 3,
+      streak,
     };
+  }
+
+  private calculateStreak(dates: Date[]): number {
+    if (!dates || dates.length === 0) return 0;
+
+    const activeDays = new Set<string>();
+    for (const d of dates) {
+      if (!d) continue;
+      const dateObj = new Date(d);
+      if (isNaN(dateObj.getTime())) continue;
+      const dayStr = dateObj.toISOString().split('T')[0];
+      activeDays.add(dayStr);
+    }
+
+    if (activeDays.size === 0) return 0;
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    const yesterday = new Date(now);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    let checkDate: Date;
+    let streak = 0;
+
+    if (activeDays.has(todayStr)) {
+      streak = 1;
+      checkDate = yesterday;
+      while (true) {
+        const checkStr = checkDate.toISOString().split('T')[0];
+        if (activeDays.has(checkStr)) {
+          streak++;
+          checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+        } else {
+          break;
+        }
+      }
+    } else if (activeDays.has(yesterdayStr)) {
+      streak = 1;
+      checkDate = new Date(yesterday);
+      checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+      while (true) {
+        const checkStr = checkDate.toISOString().split('T')[0];
+        if (activeDays.has(checkStr)) {
+          streak++;
+          checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+        } else {
+          break;
+        }
+      }
+    } else {
+      streak = 0;
+    }
+
+    return streak;
   }
 }

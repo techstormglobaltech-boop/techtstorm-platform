@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import SettingsView from "@/components/mentee/SettingsView";
 import { redirect } from "next/navigation";
+import { getMyProfile } from "@/app/actions/profile";
 
 export const metadata = {
   title: "Account Settings | TechStorm Global",
@@ -14,6 +15,8 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
+  const profile = await getMyProfile();
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
       <div>
@@ -22,9 +25,9 @@ export default async function SettingsPage() {
       </div>
 
       <SettingsView user={{
-        name: session.user.name || null,
-        email: session.user.email || null,
-        image: session.user.image || null,
+        name: profile?.name || session.user.name || null,
+        email: profile?.email || session.user.email || null,
+        image: profile?.image || session.user.image || null,
       }} />
     </div>
   );

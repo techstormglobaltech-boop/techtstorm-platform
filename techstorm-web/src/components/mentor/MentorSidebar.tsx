@@ -92,7 +92,7 @@ export default function MentorSidebar({ isOpen, onClose, isCollapsed, toggleColl
             <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-teal/10 overflow-hidden relative border border-slate-100 shrink-0">
                     {user?.image ? (
-                        <Image src={user.image} alt="Profile" fill className="object-cover" />
+                        <Image src={user.image} alt="Profile" fill className="object-cover" unoptimized />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-brand-teal font-bold">
                             {user?.name?.[0] || "M"}

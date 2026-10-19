@@ -187,8 +187,8 @@ export class AuthService {
     return this.prisma.user.update({
       where: { id: userId },
       data: {
-        name: data.name,
-        ...(data.image && { image: data.image })
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.image !== undefined && { image: data.image })
       }
     });
   }

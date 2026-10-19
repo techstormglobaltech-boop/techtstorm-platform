@@ -64,7 +64,7 @@ export class PublicService {
   }
 
   async getCourseById(id: string) {
-    return this.prisma.course.findUnique({
+    const course = await this.prisma.course.findUnique({
       where: { id },
       include: {
         instructor: {
@@ -81,6 +81,12 @@ export class PublicService {
         },
       },
     });
+
+    if (!course || course.status !== 'PUBLISHED') {
+      return null;
+    }
+
+    return course;
   }
 
   async getMaintenanceMode() {
