@@ -33,7 +33,7 @@ export default function GoogleAnalytics() {
     if (measurementId && window.gtag) {
       const timeoutId = setTimeout(() => {
         const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
-        // @ts-expect-error
+        // @ts-expect-error - gtag is defined globally by the Google Analytics script
         window.gtag('config', measurementId, {
           page_path: url,
           page_title: document.title,

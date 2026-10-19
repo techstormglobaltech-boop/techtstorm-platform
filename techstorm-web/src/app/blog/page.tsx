@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
+import GlassNavbar from '@/components/new-ui/GlassNavbar';
+import { auth } from '@/auth';
 import Footer from '@/components/Footer';
 
 export const metadata = {
@@ -24,7 +25,7 @@ export default async function BlogPage() {
 
   return (
     <>
-      <Navbar />
+      <GlassNavbar user={(await auth())?.user} />
       <main className="min-h-screen pt-32 pb-20 bg-slate-50">
         <div className="container mx-auto px-5 max-w-7xl">
           <div className="text-center mb-16 max-w-3xl mx-auto">
@@ -111,3 +112,4 @@ export default async function BlogPage() {
     </>
   );
 }
+

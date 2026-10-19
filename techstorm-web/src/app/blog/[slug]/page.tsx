@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
+import GlassNavbar from '@/components/new-ui/GlassNavbar';
 import Footer from '@/components/Footer';
 import ReactMarkdown from 'react-markdown';
 import { Metadata } from 'next';
+import { auth } from '@/auth';
 
 async function getPost(slug: string) {
   try {
@@ -28,18 +29,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: post.title,
       description: post.excerpt || "",
       images: post.coverImage ? [post.coverImage] : [],
-    }
+    },
   };
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await getPost(slug);
+  const session = await auth();
+  const user = session?.user;
 
   if (!post) {
     return (
       <>
-        <Navbar />
+        <GlassNavbar user={user} />
         <div className="min-h-screen pt-32 pb-20 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-brand-dark mb-4">Post Not Found</h1>
@@ -56,7 +59,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <>
-      <Navbar />
+      <GlassNavbar user={user} />
       <main className="min-h-screen pt-32 pb-20 bg-white">
         
         {/* Article Header */}

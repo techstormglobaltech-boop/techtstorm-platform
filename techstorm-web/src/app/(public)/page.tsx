@@ -4,6 +4,7 @@ import Reveal from "@/components/ui/Reveal";
 import { getHomeData } from "@/app/actions/home";
 import SponsorsSection from "@/components/SponsorsSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
+import { LiquidGlassButton } from "@/components/new-ui/LiquidGlassButton";
 
 export default async function Home() {
   const data = await getHomeData();
@@ -33,11 +34,11 @@ export default async function Home() {
                 </Reveal>
                 <Reveal delay={400}>
                     <div className="flex flex-wrap gap-4">
-                        <Link href="/register" className="bg-brand-teal text-white font-bold px-10 py-4 rounded-full hover:bg-[#006066] transition transform hover:-translate-y-1 shadow-lg shadow-brand-teal/20">
-                            Get Started
+                        <Link href="/register">
+                            <LiquidGlassButton className="px-10 py-4 !text-lg shadow-lg">Get Started</LiquidGlassButton>
                         </Link>
-                        <Link href="/about" className="border-2 border-brand-teal text-brand-teal font-bold px-10 py-4 rounded-full hover:bg-brand-teal hover:text-white transition transform hover:-translate-y-1">
-                            How It Works
+                        <Link href="/about">
+                            <LiquidGlassButton variant="subtle" className="px-10 py-4 !text-lg">How It Works</LiquidGlassButton>
                         </Link>
                     </div>
                 </Reveal>
@@ -183,8 +184,8 @@ export default async function Home() {
                     </div>
                     <h3 className="text-2xl font-bold text-brand-dark mb-2">Our first courses are brewing!</h3>
                     <p className="text-slate-500 max-w-md mx-auto mb-8">We're currently finalizing high-quality curriculum for you. Check back in a few days or sign up for updates.</p>
-                    <Link href="/register" className="inline-block bg-brand-dark text-white font-bold px-8 py-3 rounded-xl hover:bg-brand-teal transition-colors">
-                        Get Notified
+                    <Link href="/register">
+                        <LiquidGlassButton className="px-8 py-3">Get Notified</LiquidGlassButton>
                     </Link>
                 </div>
               )}
@@ -237,8 +238,8 @@ export default async function Home() {
                                             <span className="flex items-center gap-2"><i className="fas fa-map-marker-alt text-brand-teal"></i> {event.location}</span>
                                         </div>
                                         <p className="text-slate-500 text-sm mb-8 line-clamp-3 leading-relaxed flex-1">{event.description}</p>
-                                        <Link href="/events" className="block w-full text-center bg-brand-dark text-white font-bold py-3.5 rounded-xl hover:bg-brand-teal transition-colors shadow-lg shadow-slate-200">
-                                            View Details
+                                        <Link href="/events" className="w-full">
+                                            <LiquidGlassButton className="w-full py-3.5">View Details</LiquidGlassButton>
                                         </Link>
                                     </div>
                                 </div>

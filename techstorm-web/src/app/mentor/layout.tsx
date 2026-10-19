@@ -1,5 +1,7 @@
 import MentorLayoutClient from "@/components/mentor/MentorLayoutClient";
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { getMyProfile } from "@/app/actions/profile";
 
 export const metadata = {
   title: "Instructor Portal | TechStorm Global",
@@ -11,11 +13,27 @@ export default async function MentorLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch (error) {
+    redirect("/login?reason=session_expired&callbackUrl=/mentor");
+  }
+
+  if (!session?.user || session.error === "SessionExpired") {
+    redirect("/login?reason=session_expired&callbackUrl=/mentor");
+  }
+
+  const profile = await getMyProfile();
+  const currentUser = {
+    ...session.user,
+    ...(profile?.name ? { name: profile.name } : {}),
+    ...(profile?.image ? { image: profile.image } : {}),
+  };
 
   return (
-    <MentorLayoutClient user={session?.user}>
-        {children}
+    <MentorLayoutClient user={currentUser}>
+      {children}
     </MentorLayoutClient>
   );
 }

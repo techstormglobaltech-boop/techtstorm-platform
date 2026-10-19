@@ -46,12 +46,18 @@ export async function register(formData: FormData) {
 }
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
-  const callbackUrl = formData.get("callbackUrl")?.toString();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const rawCallbackUrl = formData.get("callbackUrl")?.toString();
+  const callbackUrl = rawCallbackUrl && !rawCallbackUrl.startsWith("/login") && rawCallbackUrl.trim() !== ""
+    ? rawCallbackUrl 
+    : undefined;
   
   try {
     await signIn("credentials", {
-      ...Object.fromEntries(formData),
-      redirectTo: callbackUrl || "/login", 
+      email,
+      password,
+      redirectTo: callbackUrl || "/", 
     });
   } catch (error) {
     if (error instanceof AuthError) {

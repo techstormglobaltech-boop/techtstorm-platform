@@ -1,0 +1,61 @@
+:root {
+  --surface-canvas: #ffffff;
+  --surface-subtle: #f8fafc;
+  --surface: #faf8ff;
+  --on-surface: #131b2e;
+  --on-surface-variant: #3d4947;
+  --text-muted: #64748b;
+  --border-subtle: #e2e8f0;
+  --surface-container-low: #f2f3ff;
+  --surface-container-high: #e2e7ff;
+  --inverse-surface: #283044;
+  --inverse-on-surface: #eef0ff;
+  --primary: #00685f;
+  --primary-container: #008378;
+  --on-primary: #ffffff;
+  --secondary: #855300;
+  --on-secondary: #ffffff;
+  --tertiary: #006194;
+  --on-tertiary: #ffffff;
+}
+
+:root.dark, .dark {
+  --surface-canvas: transparent;
+  --surface-subtle: #020617;
+  --surface: #020617;
+  --on-surface: #f8fafc;
+  --on-surface-variant: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-subtle: #1e293b;
+  --surface-container-low: #0f172a;
+  --surface-container-high: #1e293b;
+  --inverse-surface: #f8fafc;
+  --inverse-on-surface: #020617;
+  --primary: #008378;
+  --primary-container: #00685f;
+  --on-primary: #ffffff;
+  --secondary: #ffb95f;
+  --on-secondary: #2a1700;
+  --tertiary: #93ccff;
+  --on-tertiary: #001d31;
+}
+@theme {
+  --color-surface-canvas: var(--surface-canvas);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-text-muted: var(--text-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+}

@@ -1,33 +1,36 @@
-import NextAuth from "next-auth";
-import { authConfig } from "./auth.config";
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-const { auth } = NextAuth({
-  ...authConfig,
-  trustHost: true,
-});
+export default function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+  
+  const isDashboardPage = 
+    pathname.startsWith("/admin") || 
+    pathname.startsWith("/mentor") || 
+    pathname.startsWith("/mentee") || 
+    pathname.startsWith("/learn");
 
-export default async function proxy(req: NextRequest) {
-  const host = req.headers.get("host");
-  const isLocalhost = host?.includes("localhost") || host?.includes("127.0.0.1");
+  if (isDashboardPage) {
+    const hasSessionCookie = request.cookies.getAll().some(
+      (c) => c.name.includes("session-token") && c.value
+    );
 
-  // Only set the forwarded proto if we are NOT on localhost
-  if (req.headers && !isLocalhost) {
-    req.headers.set('x-forwarded-proto', 'https');
+    if (!hasSessionCookie) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname + search);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  try {
-    return await auth(req);
-  } catch (error) {
-    console.error("Middleware Auth Error:", error);
-    // In case of auth error, we might want to allow the request to proceed 
-    // to avoid blocking the entire site, or redirect to an error page.
-    // For now, let's allow it but log the error.
-    return NextResponse.next();
-  }
+  return NextResponse.next();
 }
 
 export const config = {
-  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-  matcher: ['/((?!api|_next/static|_next/image|.*\.png$).*)'],
+  matcher: [
+    "/admin/:path*",
+    "/mentor/:path*",
+    "/mentee/:path*",
+    "/learn/:path*",
+  ],
 };
+
+export { proxy as middleware };

@@ -9,7 +9,7 @@ export class StudentsController {
 
   @Get('courses/:id/content')
   getCourseContent(@Request() req, @Param('id') courseId: string) {
-    return this.studentsService.getCourseContent(req.user.userId, courseId);
+    return this.studentsService.getCourseContent(req.user.userId, courseId, req.user.role);
   }
 
   @Post('lessons/:id/complete')

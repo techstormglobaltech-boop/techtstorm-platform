@@ -1,11 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, Suspense } from "react";
 import { authenticate } from "@/app/actions/auth";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-export default function LoginForm() {
+function LoginFormInner() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
+  const isExpired = reason === "session_expired" || searchParams.get("expired") === "true";
+  const callbackUrl = searchParams.get("callbackUrl") || "";
 
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg border border-slate-100">
@@ -17,7 +22,23 @@ export default function LoginForm() {
           Sign in to your account
         </p>
       </div>
+
+      {isExpired && (
+        <div className="p-4 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600 mt-0.5">
+            <i className="fas fa-clock-rotate-left text-base"></i>
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-sm text-amber-900">Your session has expired</h3>
+            <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+              Please sign in again to continue your session.
+            </p>
+          </div>
+        </div>
+      )}
+
       <form action={dispatch} className="mt-8 space-y-6">
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
         <div className="rounded-md shadow-sm -space-y-px">
           <div className="mb-4">
             <label htmlFor="email" className="sr-only">
@@ -82,21 +103,31 @@ export default function LoginForm() {
         
         <div className="flex h-8 items-end space-x-1" aria-live="polite" aria-atomic="true">
           {errorMessage && (
-            <>
-              <p className="text-sm text-red-500">{errorMessage}</p>
-            </>
+            <p className="text-sm text-red-500">{errorMessage}</p>
           )}
         </div>
       </form>
       
       <div className="text-center text-sm">
         <p className="text-text-gray">
-            Don't have an account?{" "}
-            <Link href="/register" className="font-medium text-brand-teal hover:text-[#006066]">
-                Sign up
-            </Link>
+          Don't have an account?{" "}
+          <Link href="/register" className="font-medium text-brand-teal hover:text-[#006066]">
+            Sign up
+          </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border border-slate-100 animate-pulse h-96 flex items-center justify-center text-slate-400">
+        Loading...
+      </div>
+    }>
+      <LoginFormInner />
+    </Suspense>
   );
 }

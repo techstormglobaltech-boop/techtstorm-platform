@@ -18,12 +18,13 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
-    // Handle 401 Unauthorized by potentially redirecting or refreshing
     if (response.status === 401) {
-      console.error("Unauthorized API call");
+      console.error(`Unauthorized API call (401) to ${endpoint}`);
     }
     const error = await response.json().catch(() => ({ message: "Unknown error" }));
-    throw new Error(error.message || `API Error: ${response.statusText}`);
+    const err = new Error(error.message || `API Error: ${response.statusText}`);
+    (err as any).status = response.status;
+    throw err;
   }
 
   const text = await response.text();

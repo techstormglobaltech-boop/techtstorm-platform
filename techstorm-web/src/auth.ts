@@ -8,7 +8,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   trustHost: true,
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days session
+    updateAge: 24 * 60 * 60, // 24 hours update interval
+  },
   providers: [
     Credentials({
       async authorize(credentials) {

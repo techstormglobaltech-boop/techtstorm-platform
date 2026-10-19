@@ -1,4 +1,5 @@
-import Navbar from '@/components/Navbar';
+import GlassNavbar from '@/components/new-ui/GlassNavbar';
+import { auth } from '@/auth';
 import Footer from '@/components/Footer';
 import ReactMarkdown from 'react-markdown';
 import { Metadata } from 'next';
@@ -26,7 +27,7 @@ export default async function PrivacyPolicyPage() {
 
   return (
     <>
-      <Navbar />
+      <GlassNavbar user={(await auth())?.user} />
       <main className="min-h-screen pt-32 pb-20 bg-slate-50">
         <div className="max-w-4xl mx-auto px-5">
           <div className="bg-white rounded-3xl p-8 md:p-16 shadow-sm border border-slate-100">
@@ -53,3 +54,4 @@ export default async function PrivacyPolicyPage() {
     </>
   );
 }
+

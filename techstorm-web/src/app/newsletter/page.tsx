@@ -1,14 +1,14 @@
 import { getLatestNewsletter, getAllNewsletters } from "@/app/actions/newsletter";
 import ReactMarkdown from "react-markdown";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import GlassNavbar from "@/components/new-ui/GlassNavbar";
 import Footer from "@/components/Footer";
 import type { Metadata } from 'next';
+import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: 'Newsletter',
 };
-
 
 export default async function NewsletterPage() {
   const [latestNewsletter, allNewsletters] = await Promise.all([
@@ -18,7 +18,7 @@ export default async function NewsletterPage() {
 
   return (
     <div className="min-h-screen bg-light-bg flex flex-col">
-      <Navbar />
+      <GlassNavbar user={(await auth())?.user} />
       
       <main className="flex-grow pt-28 pb-20 px-6">
         <div className="max-w-4xl mx-auto">
@@ -94,3 +94,4 @@ export default async function NewsletterPage() {
     </div>
   );
 }
+
