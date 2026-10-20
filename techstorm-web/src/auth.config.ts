@@ -22,6 +22,13 @@ export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  trustHost: true,
+  secret: process.env.AUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days session
+    updateAge: 24 * 60 * 60, // 24 hours update interval
+  },
   callbacks: {
     authorized({ auth, request }) {
       const nextUrl = request.nextUrl;
@@ -40,41 +47,37 @@ export const authConfig = {
       if (isDashboardPage) {
         if (!isLoggedIn || isExpired) {
           const loginUrl = new URL("/login", nextUrl);
-          loginUrl.searchParams.set("reason", "session_expired");
+          if (isExpired) {
+            loginUrl.searchParams.set("reason", "session_expired");
+          }
           loginUrl.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
           return Response.redirect(loginUrl);
         }
 
-        // Role-based protection
+        // Role-based protection: strictly redirect to user's assigned portal
         if (isAdminPage && userRole !== UserRole.ADMIN) {
-           return Response.redirect(new URL("/", nextUrl));
+           const redirectPath = userRole === UserRole.MENTOR ? "/mentor" : "/mentee";
+           return Response.redirect(new URL(redirectPath, nextUrl));
         }
         if (isMentorPage && userRole !== UserRole.MENTOR && userRole !== UserRole.ADMIN) {
-           return Response.redirect(new URL("/", nextUrl));
+           return Response.redirect(new URL("/mentee", nextUrl));
         }
         if (isMenteePage && userRole !== UserRole.MENTEE && userRole !== UserRole.ADMIN) {
-           return Response.redirect(new URL("/", nextUrl));
+           const redirectPath = userRole === UserRole.MENTOR ? "/mentor" : "/admin";
+           return Response.redirect(new URL(redirectPath, nextUrl));
         }
         return true;
       }
 
-      // If logged in and on a public page, redirect to dashboard (only if not expired)
-      const isPublicActionPage = nextUrl.pathname === "/login" || 
-                                 nextUrl.pathname === "/register" ||
-                                 nextUrl.pathname === "/";
+      // If logged in and on an auth page (/login or /register), redirect to dashboard (only if not expired)
+      const isAuthPage = nextUrl.pathname === "/login" || nextUrl.pathname === "/register";
 
-      if (isLoggedIn && !isExpired && isPublicActionPage) {
+      if (isLoggedIn && !isExpired && isAuthPage) {
         let redirectUrl = "/mentee";
         if (userRole === UserRole.ADMIN) redirectUrl = "/admin";
         else if (userRole === UserRole.MENTOR) redirectUrl = "/mentor";
         
-        // Use the actual host from the request headers to prevent cross-origin CORS issues 
-        // between www and non-www domains.
-        const host = request.headers?.get?.("host") || nextUrl.host;
-        const protocol = request.headers?.get?.("x-forwarded-proto") || "https";
-        const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3000" : `${protocol}://${host}`;
-        
-        return Response.redirect(new URL(redirectUrl, baseUrl));
+        return Response.redirect(new URL(redirectUrl, nextUrl));
       }
 
       return true;

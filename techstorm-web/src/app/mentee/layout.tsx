@@ -2,6 +2,7 @@ import MenteeLayoutClient from "@/components/mentee/MenteeLayoutClient";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getMyProfile } from "@/app/actions/profile";
+import { UserRole } from "@/types/user";
 
 export const metadata = {
   title: "My Portal | TechStorm Global",
@@ -21,8 +22,14 @@ export default async function MenteeLayout({
     redirect("/login?reason=session_expired&callbackUrl=/mentee");
   }
 
-  if (!session?.user || session.error === "SessionExpired") {
-    redirect("/login?reason=session_expired&callbackUrl=/mentee");
+  const isExpired = session?.error === "SessionExpired";
+  if (!session?.user || isExpired) {
+    redirect(isExpired ? "/login?reason=session_expired&callbackUrl=/mentee" : "/login?callbackUrl=/mentee");
+  }
+
+  // Strict Role Check: Mentors should be redirected to their instructor portal
+  if (session.user.role === UserRole.MENTOR) {
+    redirect("/mentor");
   }
 
   const profile = await getMyProfile();
@@ -34,7 +41,7 @@ export default async function MenteeLayout({
 
   return (
     <MenteeLayoutClient user={currentUser}>
-        {children}
+      {children}
     </MenteeLayoutClient>
   );
 }

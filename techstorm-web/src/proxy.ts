@@ -1,28 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 
-export default function proxy(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
-  
-  const isDashboardPage = 
-    pathname.startsWith("/admin") || 
-    pathname.startsWith("/mentor") || 
-    pathname.startsWith("/mentee") || 
-    pathname.startsWith("/learn");
+const { auth } = NextAuth(authConfig);
 
-  if (isDashboardPage) {
-    const hasSessionCookie = request.cookies.getAll().some(
-      (c) => c.name.includes("session-token") && c.value
-    );
-
-    if (!hasSessionCookie) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname + search);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  return NextResponse.next();
-}
+export default auth;
 
 export const config = {
   matcher: [
@@ -30,7 +11,9 @@ export const config = {
     "/mentor/:path*",
     "/mentee/:path*",
     "/learn/:path*",
+    "/login",
+    "/register",
   ],
 };
 
-export { proxy as middleware };
+export { auth as middleware, auth as proxy };

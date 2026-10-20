@@ -52,12 +52,54 @@ export async function authenticate(prevState: string | undefined, formData: Form
   const callbackUrl = rawCallbackUrl && !rawCallbackUrl.startsWith("/login") && rawCallbackUrl.trim() !== ""
     ? rawCallbackUrl 
     : undefined;
+
+  if (!email || !password) {
+    return "Please provide both email and password.";
+  }
   
   try {
+    // 1. Pre-authenticate with the backend API to determine user role and receive accurate error responses
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return data.message || "Invalid credentials.";
+    }
+
+    const userRole = data.user?.role;
+
+    // 2. Determine target redirection based on user role and permissions
+    let targetUrl = callbackUrl;
+
+    if (!targetUrl || targetUrl === "/" || targetUrl === "/login") {
+      if (userRole === "ADMIN") {
+        targetUrl = "/admin";
+      } else if (userRole === "MENTOR") {
+        targetUrl = "/mentor";
+      } else {
+        targetUrl = "/mentee";
+      }
+    } else {
+      // Validate callbackUrl access permissions
+      if (targetUrl.startsWith("/admin") && userRole !== "ADMIN") {
+        targetUrl = userRole === "MENTOR" ? "/mentor" : "/mentee";
+      } else if (targetUrl.startsWith("/mentor") && userRole !== "MENTOR" && userRole !== "ADMIN") {
+        targetUrl = "/mentee";
+      } else if (targetUrl.startsWith("/mentee") && userRole !== "MENTEE" && userRole !== "ADMIN") {
+        targetUrl = userRole === "MENTOR" ? "/mentor" : "/admin";
+      }
+    }
+
+    // 3. Complete NextAuth sign-in with the role-appropriate destination
     await signIn("credentials", {
       email,
       password,
-      redirectTo: callbackUrl || "/", 
+      redirectTo: targetUrl, 
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -92,8 +134,6 @@ export async function forgotPassword(prevState: string | undefined, formData: Fo
       body: JSON.stringify({ email: validatedFields.data.email }),
     });
     
-    // Always return success message for security, or the backend message
-    // Backend returns: { message: '...' }
     const data = await res.json();
     if (!res.ok) return data.message || "Something went wrong.";
     
