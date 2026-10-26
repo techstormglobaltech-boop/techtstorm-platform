@@ -3,11 +3,18 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
+interface CachedInsight {
+  data: any;
+  expiresAt: number;
+}
+
 @Injectable()
 export class AiService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AiService.name);
   private readonly aiUrl: string;
   private keepAliveInterval: NodeJS.Timeout;
+  private readonly insightsCache = new Map<string, CachedInsight>();
+  private readonly CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour TTL
 
   constructor(
     private readonly httpService: HttpService,
@@ -68,10 +75,22 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
   }
 
   async generatePlatformInsights(stats: any) {
+    const cacheKey = `platform:${JSON.stringify(stats)}`;
+    const cached = this.insightsCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
     try {
       const response = await firstValueFrom<any>(
         this.httpService.post(`${this.aiUrl}/api/v1/reports/generate-insights`, stats)
       );
+      if (response.data && !response.data.summary?.includes('temporarily unavailable')) {
+        this.insightsCache.set(cacheKey, {
+          data: response.data,
+          expiresAt: Date.now() + this.CACHE_TTL_MS,
+        });
+      }
       return response.data;
     } catch (error) {
       return {
@@ -83,10 +102,22 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
   }
 
   async generateMentorInsights(stats: any) {
+    const cacheKey = `mentor:${JSON.stringify(stats)}`;
+    const cached = this.insightsCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
     try {
       const response = await firstValueFrom<any>(
         this.httpService.post(`${this.aiUrl}/api/v1/reports/generate-mentor-insights`, stats)
       );
+      if (response.data && !response.data.summary?.includes('temporarily unavailable')) {
+        this.insightsCache.set(cacheKey, {
+          data: response.data,
+          expiresAt: Date.now() + this.CACHE_TTL_MS,
+        });
+      }
       return response.data;
     } catch (error) {
       return {
