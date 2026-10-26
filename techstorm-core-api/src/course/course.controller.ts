@@ -56,4 +56,22 @@ export class CourseController {
   getStudentsForMentor(@Request() req) {
     return this.courseService.getStudentsForMentor(req.user.userId);
   }
+  @Get('mentor/enrollments/pending')
+  getPendingEnrollments(@Request() req) {
+    return this.courseService.getPendingEnrollmentsForMentor(req.user.userId);
+  }
+
+  @Patch('mentor/enrollments/:id/status')
+  updateEnrollmentStatus(
+    @Request() req,
+    @Param('id') enrollmentId: string,
+    @Body('status') status: 'APPROVED' | 'REJECTED',
+  ) {
+    return this.courseService.updateEnrollmentStatus(
+      req.user.userId,
+      req.user.role,
+      enrollmentId,
+      status,
+    );
+  }
 }

@@ -68,16 +68,26 @@ export class PublicService {
       where: { id },
       include: {
         instructor: {
-          select: { name: true, image: true, email: true },
+          select: { name: true, image: true, email: true, bio: true, title: true },
         },
         modules: {
           include: {
-            lessons: true,
+            lessons: {
+              select: {
+                id: true,
+                title: true,
+                duration: true,
+                position: true,
+                isFree: true,
+                type: true,
+              },
+              orderBy: { position: 'asc' },
+            },
           },
           orderBy: { position: 'asc' },
         },
         _count: {
-          select: { enrollments: true },
+          select: { enrollments: { where: { status: 'APPROVED' } } },
         },
       },
     });

@@ -30,7 +30,7 @@ export class ReportsService {
         select: { createdAt: true },
       }),
       this.prisma.enrollment.findMany({
-        where: { enrolledAt: { gte: sevenDaysAgo } },
+        where: { enrolledAt: { gte: sevenDaysAgo }, status: 'APPROVED' },
         select: { enrolledAt: true },
       }),
       this.prisma.course.count({ where: { status: 'REVIEW' } }),
@@ -60,9 +60,16 @@ export class ReportsService {
         select: {
           title: true,
           price: true,
-          _count: { select: { enrollments: true } },
+          _count: {
+            select: {
+              enrollments: {
+                where: { status: 'APPROVED' },
+              },
+            },
+          },
         },
       }),
+      this.prisma.enrollment.count({ where: { status: 'PENDING' } }),
     ]);
 
     const [
@@ -79,9 +86,10 @@ export class ReportsService {
       recentSubmissions,
       recentUsers,
       courseStats,
+      pendingEnrollments,
     ] = allData;
 
-    // Process Revenue & Top Course
+    // Process Revenue & Top Course (only from APPROVED enrollments)
     let totalRevenue = 0;
     let topCourse = { title: 'No Courses Yet', enrollments: 0 };
 
@@ -114,7 +122,7 @@ export class ReportsService {
       ...recentEnrollments.map((e) => ({
         type: 'enrollment',
         user: e.user,
-        title: `Enrolled in ${e.course.title}`,
+        title: `${e.status === 'PENDING' ? 'Requested access to' : 'Enrolled in'} ${e.course.title}`,
         date: e.enrolledAt,
       })),
       ...recentSubmissions.map((s) => ({
@@ -149,7 +157,8 @@ export class ReportsService {
       pendingTasks: {
         reviews: pendingCourseReviews,
         grading: pendingGrading,
-        total: pendingCourseReviews + pendingGrading,
+        enrollments: pendingEnrollments,
+        total: pendingCourseReviews + pendingGrading + pendingEnrollments,
       },
       activityFeed,
       revenue: totalRevenue,
@@ -158,12 +167,19 @@ export class ReportsService {
   }
 
   async getMentorStats(mentorId: string) {
-    const [coursesCount, studentCount, quizAttempts, lessonProgress] =
+    const [coursesCount, studentCount, pendingEnrollmentsCount, quizAttempts, lessonProgress] =
       await Promise.all([
         this.prisma.course.count({ where: { instructorId: mentorId } }),
         this.prisma.enrollment.count({
           where: {
             course: { instructorId: mentorId },
+            status: 'APPROVED',
+          },
+        }),
+        this.prisma.enrollment.count({
+          where: {
+            course: { instructorId: mentorId },
+            status: 'PENDING',
           },
         }),
         this.prisma.quizAttempt.findMany({
@@ -226,6 +242,7 @@ export class ReportsService {
     return {
       coursesCount,
       studentCount,
+      pendingEnrollmentsCount,
       recentEnrollments,
       avgScore: Math.round(avgScore),
       completionRate: Math.round(completionRate),
@@ -242,20 +259,37 @@ export class ReportsService {
       totalEnrollments,
       totalCompletedLessons,
       totalLessons,
-      categoryCounts
+      categoryCounts,
+      approvedCoursesRevenue,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.course.count(),
-      this.prisma.enrollment.count(),
+      this.prisma.enrollment.count({ where: { status: 'APPROVED' } }),
       this.prisma.lessonProgress.count({ where: { isCompleted: true } }),
       this.prisma.lesson.count(),
       this.prisma.course.groupBy({
         by: ['category'],
         _count: { id: true }
-      })
+      }),
+      this.prisma.course.findMany({
+        select: {
+          price: true,
+          _count: {
+            select: {
+              enrollments: {
+                where: { status: 'APPROVED' },
+              },
+            },
+          },
+        },
+      }),
     ]);
 
     const completionRate = totalLessons > 0 ? (totalCompletedLessons / totalLessons) * 100 : 0;
+    const revenue = approvedCoursesRevenue.reduce(
+      (sum, c) => sum + (c.price || 0) * c._count.enrollments,
+      0,
+    );
     
     const topCategories = categoryCounts.map(c => ({
       name: c.category || 'Uncategorized',
@@ -271,6 +305,7 @@ export class ReportsService {
     });
 
     const recentCompletions = await this.prisma.enrollment.findMany({
+      where: { status: 'APPROVED' },
       take: 5,
       orderBy: { enrolledAt: 'desc' },
       include: {
@@ -285,7 +320,7 @@ export class ReportsService {
         totalCourses,
         totalEnrollments,
         completionRate: Math.round(completionRate),
-        revenue: 0 
+        revenue,
       },
       topCategories,
       aiInsights,

@@ -126,4 +126,46 @@ export class MailService {
     `;
     return this.send(email, subject, html);
   }
+
+  async sendEnrollmentApprovedEmail(email: string, courseTitle: string, courseLink: string) {
+    const subject = `Enrollment Approved: ${courseTitle}`;
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #008080;">Enrollment Approved!</h2>
+        <p>Your enrollment in <strong>${courseTitle}</strong> has been approved by your instructor.</p>
+        <p>You now have full access to all lessons, quizzes, assignments, and curriculum materials.</p>
+        <a href="${courseLink}" style="display: inline-block; background-color: #008080; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px;">Go to Course</a>
+        <p style="margin-top: 30px; font-size: 12px; color: #64748b;">Happy learning from the TechStorm Global Team!</p>
+      </div>
+    `;
+    return this.send(email, subject, html);
+  }
+
+  async sendEnrollmentRequestEmail(mentorEmail: string, mentorName: string, studentName: string, courseTitle: string, paymentRef?: string) {
+    const subject = `New Enrollment Request: ${courseTitle}`;
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #008080;">New Enrollment Request</h2>
+        <p>Hi ${mentorName},</p>
+        <p><strong>${studentName}</strong> has requested to enroll in your course <strong>${courseTitle}</strong>.</p>
+        ${paymentRef ? `<p><strong>Payment Reference / Transaction ID:</strong> ${paymentRef}</p>` : ''}
+        <p>Please review and approve their access from your Instructor Dashboard under Students.</p>
+      </div>
+    `;
+    return this.send(mentorEmail, subject, html);
+  }
+
+  async sendEnrollmentRejectedEmail(email: string, courseTitle: string, coursePageLink: string) {
+    const subject = `Update on your Enrollment Request: ${courseTitle}`;
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #0f172a;">Enrollment Request Declined</h2>
+        <p>Your recent request to enroll in <strong>${courseTitle}</strong> could not be verified by the instructor.</p>
+        <p>If you made a payment, please double-check your Mobile Money / Transaction Reference ID and submit a new request on the course page:</p>
+        <a href="${coursePageLink}" style="display: inline-block; background-color: #008080; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px;">Review & Re-apply</a>
+        <p style="margin-top: 30px; font-size: 12px; color: #64748b;">Need help? Reply to this email or contact TechStorm Global Support.</p>
+      </div>
+    `;
+    return this.send(email, subject, html);
+  }
 }

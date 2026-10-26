@@ -19,7 +19,7 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
 
   const filteredCourses = initialCourses.filter(course => {
     if (activeTab === "All") return true;
-    if (activeTab === "In Progress") return course.progress < 100;
+    if (activeTab === "In Progress") return course.progress < 100 || course.status === "PENDING";
     if (activeTab === "Completed") return course.progress === 100;
     return true;
   });
@@ -81,11 +81,19 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
                         <div className="absolute inset-0 bg-black/10"></div>
                         
                         {/* Status Badges */}
-                        {course.progress === 100 && (
+                        {course.status === "PENDING" ? (
+                            <div className="absolute top-4 left-4 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                                <i className="fas fa-clock"></i> Approval Pending
+                            </div>
+                        ) : course.status === "REJECTED" ? (
+                            <div className="absolute top-4 left-4 bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                                <i className="fas fa-times-circle"></i> Request Declined
+                            </div>
+                        ) : course.progress === 100 ? (
                             <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
                                 <i className="fas fa-check-circle"></i> Completed
                             </div>
-                        )}
+                        ) : null}
 
                         {/* Leave Course Button */}
                         <button 
@@ -108,19 +116,38 @@ export default function MyCoursesList({ initialCourses }: MyCoursesListProps) {
                             {/* Progress Section */}
                             <div>
                                 <div className="flex justify-between text-xs font-medium text-slate-600 mb-2">
-                                    <span>{course.progress}% Complete</span>
+                                    <span>
+                                      {course.status === "PENDING" ? "Awaiting Review" : `${course.progress}% Complete`}
+                                    </span>
                                     <span>{course.completedLessons}/{course.totalLessons} Lessons</span>
                                 </div>
                                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                                     <div 
-                                        className={`h-full rounded-full ${course.progress === 100 ? 'bg-green-500' : 'bg-brand-teal'}`} 
-                                        style={{ width: `${course.progress}%` }}
+                                        className={`h-full rounded-full ${
+                                          course.status === "PENDING" 
+                                            ? 'bg-amber-400' 
+                                            : course.progress === 100 
+                                              ? 'bg-green-500' 
+                                              : 'bg-brand-teal'
+                                        }`} 
+                                        style={{ width: `${course.status === "PENDING" ? 100 : course.progress}%` }}
                                     ></div>
                                 </div>
                             </div>
 
                             {/* Action Button */}
-                            {course.progress === 100 ? (
+                            {course.status === "PENDING" ? (
+                                <div className="w-full py-2.5 bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold text-center rounded-lg flex items-center justify-center gap-2 shadow-sm">
+                                    <i className="fas fa-hourglass-half text-amber-600"></i> Awaiting Mentor Approval
+                                </div>
+                            ) : course.status === "REJECTED" ? (
+                                <Link
+                                    href={`/courses/${course.id}`}
+                                    className="block w-full py-2.5 bg-rose-50 border border-rose-200 text-rose-700 font-bold text-center text-xs rounded-lg hover:bg-rose-100 transition-colors"
+                                >
+                                    Declined — Re-apply for Course
+                                </Link>
+                            ) : course.progress === 100 ? (
                                 <button className="w-full py-2.5 border border-brand-teal text-brand-teal font-semibold rounded-lg hover:bg-brand-teal hover:text-white transition-colors flex items-center justify-center gap-2">
                                     <i className="fas fa-certificate"></i> View Certificate
                                 </button>

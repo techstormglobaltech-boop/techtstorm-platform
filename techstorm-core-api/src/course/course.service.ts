@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AiService } from '../ai/ai.service';
+import { MailService } from '../mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 import { CourseStatus } from '@prisma/client';
 
 @Injectable()
@@ -8,6 +10,8 @@ export class CourseService {
   constructor(
     private prisma: PrismaService,
     private aiService: AiService,
+    private mailService: MailService,
+    private configService: ConfigService,
   ) {}
 
   async findAll(userId: string, role: string) {
@@ -139,6 +143,7 @@ export class CourseService {
         image: data.image,
         price: data.price ? parseFloat(data.price) : null,
         category: data.category,
+        ...(data.status && { status: data.status }),
       }
     });
   }
@@ -264,6 +269,9 @@ export class CourseService {
         id: enrollment.course.id,
         title: enrollment.course.title,
         enrolledAt: enrollment.enrolledAt,
+        enrollmentId: enrollment.id,
+        status: enrollment.status,
+        paymentReference: enrollment.paymentReference,
         progress,
         quizAttempts,
         submissions,
@@ -271,5 +279,84 @@ export class CourseService {
     }
 
     return Array.from(studentMap.values());
+  }
+
+  async getPendingEnrollmentsForMentor(mentorId: string) {
+    return this.prisma.enrollment.findMany({
+      where: {
+        course: {
+          instructorId: mentorId,
+        },
+        status: 'PENDING',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        course: {
+          select: {
+            id: true,
+            title: true,
+            price: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: { enrolledAt: 'desc' },
+    });
+  }
+
+  async updateEnrollmentStatus(
+    userId: string,
+    userRole: string,
+    enrollmentId: string,
+    status: 'APPROVED' | 'REJECTED',
+  ) {
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: { id: enrollmentId },
+      include: {
+        course: true,
+        user: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found');
+    }
+
+    const isPrivileged = userRole === 'ADMIN' || enrollment.course.instructorId === userId;
+    if (!isPrivileged) {
+      throw new UnauthorizedException('You do not have permission to manage this enrollment.');
+    }
+
+    const updated = await this.prisma.enrollment.update({
+      where: { id: enrollmentId },
+      data: { status },
+    });
+
+    if (status === 'APPROVED' && enrollment.user?.email) {
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://techstormglobal.com';
+      const courseLink = `${frontendUrl}/learn/${enrollment.courseId}`;
+      this.mailService.sendEnrollmentApprovedEmail(
+        enrollment.user.email,
+        enrollment.course.title,
+        courseLink,
+      ).catch((err) => console.error('Failed to send approval email:', err));
+    } else if (status === 'REJECTED' && enrollment.user?.email) {
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://techstormglobal.com';
+      const coursePageLink = `${frontendUrl}/courses/${enrollment.courseId}`;
+      this.mailService.sendEnrollmentRejectedEmail(
+        enrollment.user.email,
+        enrollment.course.title,
+        coursePageLink,
+      ).catch((err) => console.error('Failed to send rejection email:', err));
+    }
+
+    return updated;
   }
 }

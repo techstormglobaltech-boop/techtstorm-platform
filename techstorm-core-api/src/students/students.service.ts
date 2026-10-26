@@ -1,9 +1,50 @@
 import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class StudentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
+
+  private async verifyCourseAccess(userId: string, courseId: string) {
+    const [course, user] = await Promise.all([
+      this.prisma.course.findUnique({
+        where: { id: courseId },
+        select: { instructorId: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      }),
+    ]);
+
+    if (!course) {
+      throw new NotFoundException('Course not found.');
+    }
+
+    if (user?.role === 'ADMIN' || course.instructorId === userId) {
+      return true;
+    }
+
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId },
+      },
+    });
+
+    if (!enrollment || enrollment.status !== 'APPROVED') {
+      throw new UnauthorizedException(
+        enrollment?.status === 'PENDING'
+          ? 'Your enrollment is pending instructor approval.'
+          : 'You do not have active access to this course.',
+      );
+    }
+
+    return true;
+  }
 
   async getCourseContent(userId: string, courseId: string, userRole?: string) {
     const course = await this.prisma.course.findUnique({
@@ -42,6 +83,22 @@ export class StudentsService {
       return null;
     }
 
+    if (!isPrivileged) {
+      const enrollment = await this.prisma.enrollment.findUnique({
+        where: {
+          userId_courseId: { userId, courseId },
+        },
+      });
+
+      if (!enrollment || enrollment.status !== 'APPROVED') {
+        throw new UnauthorizedException(
+          enrollment?.status === 'PENDING'
+            ? 'Your enrollment is pending instructor approval.'
+            : 'You are not enrolled in this course.'
+        );
+      }
+    }
+
     let completedCount = 0;
     let totalCount = 0;
 
@@ -65,6 +122,17 @@ export class StudentsService {
   }
 
   async markComplete(userId: string, lessonId: string, completed: boolean) {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id: lessonId },
+      select: { module: { select: { courseId: true } } },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found.');
+    }
+
+    await this.verifyCourseAccess(userId, lesson.module.courseId);
+
     return (this.prisma.lessonProgress as any).upsert({
       where: {
         userId_lessonId: { userId, lessonId }
@@ -74,14 +142,30 @@ export class StudentsService {
     });
   }
 
-  async enroll(userId: string, courseId: string) {
+  async enroll(userId: string, courseId: string, paymentReference?: string) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
+      include: {
+        instructor: {
+          select: { id: true, name: true, email: true },
+        },
+      },
     });
 
     if (!course || course.status !== 'PUBLISHED') {
       throw new BadRequestException('Cannot enroll in an unpublished course.');
     }
+
+    const isPaid = typeof course.price === 'number' && course.price > 0;
+    const cleanPaymentRef = paymentReference?.trim() || null;
+
+    if (isPaid && !cleanPaymentRef) {
+      throw new BadRequestException(
+        'Please provide a valid Payment or Mobile Money Reference ID to request access to this paid course.',
+      );
+    }
+
+    const requiredStatus = isPaid ? 'PENDING' : 'APPROVED';
 
     const existingEnrollment = await this.prisma.enrollment.findUnique({
       where: {
@@ -90,12 +174,53 @@ export class StudentsService {
     });
 
     if (existingEnrollment) {
-      return existingEnrollment;
+      if (existingEnrollment.status === 'REJECTED' || (existingEnrollment.status === 'PENDING' && cleanPaymentRef)) {
+        const updated = await this.prisma.enrollment.update({
+          where: { id: existingEnrollment.id },
+          data: {
+            status: requiredStatus,
+            paymentReference: cleanPaymentRef || existingEnrollment.paymentReference,
+            enrolledAt: new Date(),
+          },
+        });
+
+        if (requiredStatus === 'PENDING' && course.instructor?.email) {
+          const student = await this.prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } });
+          this.mailService.sendEnrollmentRequestEmail(
+            course.instructor.email,
+            course.instructor.name || 'Instructor',
+            student?.name || student?.email || 'A student',
+            course.title,
+            cleanPaymentRef || undefined,
+          ).catch(() => {});
+        }
+
+        return updated;
+      }
+      return { ...existingEnrollment, alreadyEnrolled: existingEnrollment.status === 'APPROVED' };
     }
 
-    return this.prisma.enrollment.create({
-      data: { userId, courseId },
+    const enrollment = await this.prisma.enrollment.create({
+      data: {
+        userId,
+        courseId,
+        status: requiredStatus,
+        paymentReference: cleanPaymentRef,
+      },
     });
+
+    if (requiredStatus === 'PENDING' && course.instructor?.email) {
+      const student = await this.prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } });
+      this.mailService.sendEnrollmentRequestEmail(
+        course.instructor.email,
+        course.instructor.name || 'Instructor',
+        student?.name || student?.email || 'A student',
+        course.title,
+        cleanPaymentRef || undefined,
+      ).catch(() => {});
+    }
+
+    return enrollment;
   }
 
   async unenroll(userId: string, courseId: string) {
@@ -107,6 +232,17 @@ export class StudentsService {
   }
 
   async submitQuiz(userId: string, quizId: string, score: number, totalQuestions: number) {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+      select: { lesson: { select: { module: { select: { courseId: true } } } } },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException('Quiz not found.');
+    }
+
+    await this.verifyCourseAccess(userId, quiz.lesson.module.courseId);
+
     return this.prisma.quizAttempt.create({
       data: {
         userId,
@@ -118,10 +254,17 @@ export class StudentsService {
   }
 
   async submitAssignment(userId: string, assignmentId: string, content: string) {
-    // We try to find an existing submission to update it, or create a new one.
-    // Since we don't have a unique constraint on userId_assignmentId in the provided schema, 
-    // we'll look for the first one or just create a new one. 
-    // Best practice is to have a unique constraint.
+    const assignment = await this.prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      select: { lesson: { select: { module: { select: { courseId: true } } } } },
+    });
+
+    if (!assignment) {
+      throw new NotFoundException('Assignment not found.');
+    }
+
+    await this.verifyCourseAccess(userId, assignment.lesson.module.courseId);
+
     const existing = await this.prisma.assignmentSubmission.findFirst({
       where: { userId, assignmentId, status: 'PENDING' }
     });
@@ -143,6 +286,7 @@ export class StudentsService {
       where: { id: userId },
       include: {
         enrollments: {
+          where: { status: 'APPROVED' },
           include: {
             course: {
               include: {
@@ -172,7 +316,7 @@ export class StudentsService {
     let completedLessons = 0;
     let perfectQuizzes = 0;
     let completedCourses = 0;
-    let totalEnrollments = user.enrollments.length;
+    const totalEnrollments = user.enrollments.length;
 
     user.enrollments.forEach((enrollment) => {
       let courseLessons = 0;
@@ -263,6 +407,7 @@ export class StudentsService {
     const enrollments = await this.prisma.enrollment.findMany({
       where: { 
         userId,
+        status: 'APPROVED',
         course: { status: 'PUBLISHED' },
       },
       include: {
@@ -372,13 +517,21 @@ export class StudentsService {
         userId_courseId: { userId, courseId },
       },
     });
-    return !!enrollment;
+    if (!enrollment) {
+      return { isEnrolled: false, status: null };
+    }
+    return {
+      isEnrolled: enrollment.status === 'APPROVED',
+      status: enrollment.status,
+      paymentReference: enrollment.paymentReference,
+    };
   }
 
   async getEnrolledCourses(userId: string) {
     return this.prisma.enrollment.findMany({
       where: { 
         userId,
+        status: 'APPROVED',
         course: { status: 'PUBLISHED' },
       },
       include: {
@@ -411,6 +564,7 @@ export class StudentsService {
           },
         },
       },
+      orderBy: { enrolledAt: 'desc' },
     });
 
     return enrollments.map((e) => {
@@ -438,6 +592,9 @@ export class StudentsService {
         progress,
         totalLessons,
         completedLessons,
+        status: e.status,
+        enrolledAt: e.enrolledAt,
+        paymentReference: e.paymentReference,
       };
     });
   }
@@ -445,7 +602,7 @@ export class StudentsService {
   async getMenteeDashboardData(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     
-    const enrollments = await this.prisma.enrollment.findMany({
+    const allEnrollments = await this.prisma.enrollment.findMany({
       where: { 
         userId,
         course: { status: 'PUBLISHED' },
@@ -470,11 +627,14 @@ export class StudentsService {
       },
     });
 
+    const approvedEnrollments = allEnrollments.filter((e) => e.status === 'APPROVED');
+    const pendingEnrollmentsCount = allEnrollments.filter((e) => e.status === 'PENDING').length;
+
     let totalLessons = 0;
     let completedLessons = 0;
     let jumpBackCourse = null;
 
-    const courses = enrollments.map((e) => {
+    const courses = approvedEnrollments.map((e) => {
       const course = e.course;
       let courseTotal = 0;
       let courseCompleted = 0;
@@ -519,10 +679,13 @@ export class StudentsService {
       jumpBackCourse = courses.find(c => c.progress < 100) || courses[0];
     }
 
-    const enrolledIds = enrollments.map(e => e.courseId);
+    const excludedCourseIds = allEnrollments
+      .filter((e) => e.status === 'APPROVED' || e.status === 'PENDING')
+      .map((e) => e.courseId);
+
     const recommendations = await this.prisma.course.findMany({
       where: {
-        id: { notIn: enrolledIds },
+        id: { notIn: excludedCourseIds },
         status: 'PUBLISHED',
       },
       take: 4,
@@ -561,7 +724,8 @@ export class StudentsService {
 
     return {
       user: { name: user?.name },
-      totalCourses: enrollments.length,
+      totalCourses: approvedEnrollments.length,
+      pendingEnrollmentsCount,
       totalCompletedLessons: completedLessons,
       overallProgress: totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100),
       courses,

@@ -5,23 +5,35 @@ import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
 import { enrollInCourse } from "@/app/actions/enrollment";
 import toast from "react-hot-toast";
-import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CourseDetailProps {
   course: any; 
   isEnrolled?: boolean;
+  enrollmentStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  initialPaymentRef?: string | null;
 }
 
-export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: CourseDetailProps) {
+export default function CourseDetail({ 
+  course, 
+  isEnrolled: initialIsEnrolled,
+  enrollmentStatus,
+  initialPaymentRef,
+}: CourseDetailProps) {
   const router = useRouter();
   const [isEnrolling, setIsEnrolling] = useState(false);
-  const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled ?? false);
+  const [status, setStatus] = useState<"PENDING" | "APPROVED" | "REJECTED" | null>(
+    enrollmentStatus || (initialIsEnrolled ? "APPROVED" : null)
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [paymentRefInput, setPaymentRefInput] = useState(initialPaymentRef || "");
   const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
-  if (!course) return <div>Course not found</div>;
+  if (!course) return <div className="p-10 text-center text-slate-500">Course not found</div>;
+
+  const isPaid = typeof course.price === "number" && course.price > 0;
 
   const toggleModule = (id: string) => {
     setExpandedModules(prev => 
@@ -30,18 +42,23 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
   };
 
   const handleEnrollClick = () => {
-    if (isEnrolled) {
+    if (status === "APPROVED" || isEnrolled) {
         router.push(`/learn/${course.id}`);
         return;
     }
-    setIsConfirmOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleConfirmEnroll = async () => {
-    setIsConfirmOpen(false);
+  const handleConfirmEnroll = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (isPaid && !paymentRefInput.trim()) {
+      toast.error("Please enter your Payment / MoMo Reference ID to submit your enrollment request.");
+      return;
+    }
+    setIsModalOpen(false);
     setIsEnrolling(true);
     
-    const result = await enrollInCourse(course.id);
+    const result = await enrollInCourse(course.id, paymentRefInput.trim() || undefined);
     
     if (result.error === "UNAUTHORIZED") {
         router.push(`/login?callbackUrl=/courses/${course.id}`);
@@ -49,13 +66,19 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
     }
 
     if (result.success) {
-      toast.success(result.alreadyEnrolled ? "You are already enrolled!" : "Welcome to the course!");
-      setIsEnrolled(true);
-      if (!result.alreadyEnrolled) {
-          router.push(`/learn/${course.id}`);
+      if (result.status === "PENDING") {
+        toast.success("Enrollment request submitted! Waiting for instructor approval.");
+        setStatus("PENDING");
+      } else {
+        toast.success(result.alreadyEnrolled ? "You are already enrolled!" : "Welcome to the course!");
+        setIsEnrolled(true);
+        setStatus("APPROVED");
+        if (!result.alreadyEnrolled) {
+            router.push(`/learn/${course.id}`);
+        }
       }
     } else {
-      toast.error("Enrollment failed. Please try again.");
+      toast.error(result.error || "Enrollment failed. Please try again.");
     }
     setIsEnrolling(false);
   };
@@ -83,7 +106,6 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
                 <Reveal delay={300}>
                     <div className="flex flex-wrap items-center gap-6 text-sm">
                         <div className="flex items-center gap-1 text-brand-amber">
-                            {/* Static rating for now */}
                             <span className="font-bold">4.8</span>
                             <i className="fas fa-star"></i>
                             <i className="fas fa-star"></i>
@@ -171,9 +193,6 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
                                                                 </span>
                                                             </div>
                                                         ))}
-                                                        {(!module.lessons || module.lessons.length === 0) && (
-                                                            <p className="text-xs text-slate-400 pl-8 italic">No lessons in this module yet.</p>
-                                                        )}
                                                     </div>
                                                 </motion.div>
                                             )}
@@ -181,20 +200,23 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
                                     </div>
                                 );
                             })}
+                            {(!course.modules || course.modules.length === 0) && (
+                                <div className="p-8 text-center text-slate-400 italic">No modules added yet.</div>
+                            )}
                         </div>
                     </div>
                 </Reveal>
 
-                {/* Instructor */}
+                {/* Instructor Bio */}
                 <Reveal width="100%" delay={200}>
-                    <div>
-                        <h3 className="text-2xl font-bold text-brand-dark mb-6">Instructor</h3>
-                        <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-                            <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
+                        <h3 className="text-xl font-bold text-brand-dark mb-4">Instructor</h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
                                 {course.instructor?.image ? (
-                                    <Image src={course.instructor.image} alt={course.instructor.name} width={80} height={80} className="rounded-full" />
+                                    <Image src={course.instructor.image} alt={course.instructor.name || "Instructor"} width={60} height={60} className="rounded-full border-2 border-brand-teal" />
                                 ) : (
-                                    <div className="w-20 h-20 rounded-full bg-brand-teal flex items-center justify-center text-white font-bold text-2xl">
+                                    <div className="w-16 h-16 rounded-full bg-brand-teal flex items-center justify-center text-white text-xl font-bold">
                                         {course.instructor?.name?.[0] || "T"}
                                     </div>
                                 )}
@@ -204,7 +226,7 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
                                 </div>
                             </div>
                             <p className="text-slate-600 leading-relaxed text-sm">
-                                Experienced mentor at TechStorm.
+                                {course.instructor?.bio || "Experienced mentor and systems educator at TechStorm Global."}
                             </p>
                         </div>
                     </div>
@@ -230,25 +252,87 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
                             </div>
 
                             <div className="p-8">
-                                <div className="text-3xl font-bold text-brand-dark mb-2">{course.price ? `GH₵${course.price}` : "Free"}</div>
+                                <div className="flex items-baseline gap-2 mb-2">
+                                  <span className="text-3xl font-bold text-brand-dark">
+                                    {isPaid ? `GH₵${course.price}` : "Free"}
+                                  </span>
+                                  {isPaid && (
+                                    <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">
+                                      Instructor Verified
+                                    </span>
+                                  )}
+                                </div>
                                 
-                                <button 
-                                    onClick={handleEnrollClick}
-                                    disabled={isEnrolling}
-                                    className={`block w-full text-white text-center font-bold py-3.5 rounded-lg transition-all shadow-md mb-4 disabled:opacity-50 ${
-                                        isEnrolled ? 'bg-brand-dark hover:bg-black' : 'bg-brand-teal hover:bg-[#006066]'
-                                    }`}
-                                >
-                                    {isEnrolling ? "Processing..." : isEnrolled ? "Go to Course" : "Enroll Now"}
-                                </button>
+                                {status === "APPROVED" || isEnrolled ? (
+                                  <button 
+                                      onClick={handleEnrollClick}
+                                      className="block w-full text-white text-center font-bold py-3.5 rounded-lg transition-all shadow-md mb-4 bg-brand-dark hover:bg-black flex items-center justify-center gap-2"
+                                  >
+                                      <span>Go to Course</span>
+                                      <i className="fas fa-arrow-right"></i>
+                                  </button>
+                                ) : status === "PENDING" ? (
+                                  <div className="space-y-3 mb-4">
+                                      <div className="w-full py-3.5 px-4 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-center font-bold flex items-center justify-center gap-2 shadow-sm">
+                                          <i className="fas fa-clock text-amber-600 animate-pulse"></i>
+                                          <span>Approval Pending</span>
+                                      </div>
+                                      <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 leading-relaxed">
+                                          <div className="font-semibold text-slate-800 mb-1 flex items-center gap-1.5">
+                                              <i className="fas fa-info-circle text-brand-teal"></i>
+                                              <span>Enrollment submitted</span>
+                                          </div>
+                                          Your request has been delivered to your instructor. Once payment or eligibility is verified, access will be activated.
+                                          {paymentRefInput && (
+                                            <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between">
+                                              <span className="font-mono text-[11px] text-slate-700 truncate">Ref: {paymentRefInput}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => setIsModalOpen(true)}
+                                                className="text-[11px] font-bold text-brand-teal hover:underline ml-2 shrink-0"
+                                              >
+                                                Edit Ref
+                                              </button>
+                                            </div>
+                                          )}
+                                      </div>
+                                  </div>
+                                ) : status === "REJECTED" ? (
+                                  <div className="space-y-3 mb-4">
+                                      <div className="w-full py-2.5 px-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-2">
+                                          <i className="fas fa-times-circle"></i>
+                                          <span>Previous Request Declined</span>
+                                      </div>
+                                      <button 
+                                          onClick={handleEnrollClick}
+                                          disabled={isEnrolling}
+                                          className="block w-full text-white text-center font-bold py-3.5 rounded-lg transition-all shadow-md bg-brand-teal hover:bg-[#006066] text-sm"
+                                      >
+                                          {isEnrolling ? "Processing..." : "Re-apply for Course"}
+                                      </button>
+                                  </div>
+                                ) : (
+                                  <button 
+                                      onClick={handleEnrollClick}
+                                      disabled={isEnrolling}
+                                      className="block w-full text-white text-center font-bold py-3.5 rounded-lg transition-all shadow-md mb-4 disabled:opacity-50 bg-brand-teal hover:bg-[#006066]"
+                                  >
+                                      {isEnrolling 
+                                        ? "Processing..." 
+                                        : isPaid 
+                                          ? `Request Access (GH₵${course.price})` 
+                                          : "Enroll Now (Free)"}
+                                  </button>
+                                )}
 
-                                <p className="text-center text-xs text-slate-500 mb-6">Full Lifetime Access</p>
+                                <p className="text-center text-xs text-slate-500 mb-6">Full Lifetime Access upon approval</p>
                                 
                                 <div className="space-y-4">
                                     <h5 className="font-bold text-brand-dark text-sm">This course includes:</h5>
                                     <ul className="space-y-3 text-sm text-slate-600">
-                                        <li className="flex items-center gap-3"><i className="fas fa-video w-5 text-center text-slate-400"></i> On-demand video</li>
-                                        <li className="flex items-center gap-3"><i className="fas fa-mobile-alt w-5 text-center text-slate-400"></i> Access on mobile</li>
+                                        <li className="flex items-center gap-3"><i className="fas fa-video w-5 text-center text-slate-400"></i> On-demand curriculum</li>
+                                        <li className="flex items-center gap-3"><i className="fas fa-user-check w-5 text-center text-slate-400"></i> Direct mentor review</li>
+                                        <li className="flex items-center gap-3"><i className="fas fa-mobile-alt w-5 text-center text-slate-400"></i> Mobile & desktop access</li>
                                         <li className="flex items-center gap-3"><i className="fas fa-certificate w-5 text-center text-slate-400"></i> Certificate of completion</li>
                                     </ul>
                                 </div>
@@ -261,15 +345,107 @@ export default function CourseDetail({ course, isEnrolled: initialIsEnrolled }: 
         </div>
       </section>
 
-      <ConfirmModal 
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleConfirmEnroll}
-        title="Confirm Enrollment"
-        message={`Are you sure you want to enroll in "${course.title}"? You will get instant access to all course materials.`}
-        confirmText="Enroll Now"
-        variant="teal"
-      />
+      {/* ENROLLMENT APPLICATION MODAL */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100"
+            >
+              <div className="p-6">
+                <div className="w-12 h-12 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center mx-auto mb-4 text-xl">
+                  <i className={`fas ${isPaid ? "fa-file-invoice-dollar" : "fa-graduation-cap"}`}></i>
+                </div>
+                <h3 className="text-xl font-bold text-brand-dark text-center mb-1">
+                  {isPaid ? "Course Enrollment Request" : "Confirm Enrollment"}
+                </h3>
+                <p className="text-slate-500 text-xs text-center mb-6">
+                  {course.title}
+                </p>
+
+                {isPaid ? (
+                  <form onSubmit={handleConfirmEnroll} className="space-y-4">
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5 text-xs text-slate-600">
+                      <div className="flex justify-between items-center text-sm font-bold text-brand-dark pb-2 border-b border-slate-200">
+                        <span>Course Fee:</span>
+                        <span className="text-brand-teal text-base">GH₵{course.price}</span>
+                      </div>
+                      <div className="space-y-1.5 pt-1">
+                        <p className="font-bold text-slate-800">How to complete your enrollment:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-slate-600 leading-relaxed">
+                          <li>Send <strong>GH₵{course.price}</strong> via Mobile Money or Bank Transfer using your full name as reference.</li>
+                          <li>Enter your <strong>Transaction ID / Reference</strong> below.</li>
+                          <li>Your instructor will verify the payment and unlock immediate course access.</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Payment / MoMo Reference ID <span className="text-rose-500">*</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        required
+                        value={paymentRefInput}
+                        onChange={(e) => setPaymentRefInput(e.target.value)}
+                        placeholder="e.g. MoMo Trans ID: 29817294812"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-brand-dark placeholder:text-slate-400 focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-all"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Required for instructor verification. You will receive an email as soon as your enrollment is approved.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsModalOpen(false)}
+                        className="flex-1 py-2.5 px-4 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isEnrolling}
+                        className="flex-1 py-2.5 px-4 text-sm font-bold text-white bg-brand-teal hover:bg-[#006066] rounded-lg transition-colors shadow-md disabled:opacity-50"
+                      >
+                        {isEnrolling ? "Submitting..." : "Submit Request"}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="space-y-6">
+                    <p className="text-sm text-slate-600 text-center leading-relaxed">
+                      You are about to enroll in this course for <strong>Free</strong>. You will get immediate access to all curriculum modules.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsModalOpen(false)}
+                        className="flex-1 py-2.5 px-4 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleConfirmEnroll()}
+                        disabled={isEnrolling}
+                        className="flex-1 py-2.5 px-4 text-sm font-bold text-white bg-brand-teal hover:bg-[#006066] rounded-lg transition-colors shadow-md disabled:opacity-50"
+                      >
+                        {isEnrolling ? "Enrolling..." : "Enroll Free"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

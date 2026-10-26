@@ -18,8 +18,12 @@ export class StudentsController {
   }
 
   @Post('enroll')
-  enroll(@Request() req, @Body('courseId') courseId: string) {
-    return this.studentsService.enroll(req.user.userId, courseId);
+  enroll(
+    @Request() req,
+    @Body('courseId') courseId: string,
+    @Body('paymentReference') paymentReference?: string,
+  ) {
+    return this.studentsService.enroll(req.user.userId, courseId, paymentReference);
   }
 
   @Delete('enroll/:courseId')

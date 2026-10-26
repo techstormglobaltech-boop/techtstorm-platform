@@ -26,6 +26,32 @@ export default async function MentorDashboard() {
         </Link>
       </div>
 
+      {/* Pending Approvals Callout */}
+      {stats.pendingEnrollmentsCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center text-xl shrink-0">
+              <i className="fas fa-user-clock"></i>
+            </div>
+            <div>
+              <h3 className="font-bold text-amber-950 text-sm sm:text-base">
+                {stats.pendingEnrollmentsCount} Pending Course Enrollment {stats.pendingEnrollmentsCount === 1 ? "Request" : "Requests"}
+              </h3>
+              <p className="text-xs text-amber-800 mt-0.5">
+                Students have submitted payment references for your paid courses and are waiting for your verification.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/mentor/students?tab=PENDING"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-colors shadow-sm shrink-0 flex items-center gap-2"
+          >
+            <span>Review Requests</span>
+            <i className="fas fa-arrow-right"></i>
+          </Link>
+        </div>
+      )}
+
       {/* AI TEACHING ASSISTANT SECTION */}
       <section className="bg-brand-dark text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
         <div className="relative z-10 grid md:grid-cols-3 gap-8 items-center">
@@ -87,13 +113,14 @@ export default async function MentorDashboard() {
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 className="font-bold text-brand-dark">Recent Enrollments</h3>
-                <Link href="/mentor/courses" className="text-sm text-brand-teal hover:underline">View All</Link>
+                <Link href="/mentor/students" className="text-sm text-brand-teal hover:underline">Manage Students</Link>
             </div>
             <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-xs">
                     <tr>
                         <th className="p-4 pl-6">Student</th>
                         <th className="p-4">Course</th>
+                        <th className="p-4">Status</th>
                         <th className="p-4">Date</th>
                     </tr>
                 </thead>
@@ -105,12 +132,23 @@ export default async function MentorDashboard() {
                                 <div className="text-xs text-slate-500 font-normal">{row.user.email}</div>
                             </td>
                             <td className="p-4 text-slate-600">{row.course.title}</td>
+                            <td className="p-4">
+                                <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full ${
+                                    row.status === "PENDING"
+                                        ? "bg-amber-100 text-amber-800"
+                                        : row.status === "REJECTED"
+                                          ? "bg-rose-100 text-rose-700"
+                                          : "bg-emerald-100 text-emerald-700"
+                                }`}>
+                                    {row.status || "APPROVED"}
+                                </span>
+                            </td>
                             <td className="p-4 text-slate-500">{new Date(row.enrolledAt).toLocaleDateString()}</td>
                         </tr>
                     ))}
                     {(!stats?.recentEnrollments || stats.recentEnrollments.length === 0) && (
                         <tr>
-                            <td colSpan={3} className="p-10 text-center text-slate-500">No enrollments yet.</td>
+                            <td colSpan={4} className="p-10 text-center text-slate-500">No enrollments yet.</td>
                         </tr>
                     )}
                 </tbody>

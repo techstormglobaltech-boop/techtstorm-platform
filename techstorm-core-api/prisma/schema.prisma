@@ -37,6 +37,12 @@ enum MeetingStatus {
   CANCELLED
 }
 
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // Models
 
 model User {
@@ -255,13 +261,16 @@ model LessonProgress {
 }
 
 model Enrollment {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  enrolledAt DateTime @default(now())
+  id               String           @id @default(cuid())
+  userId           String
+  courseId         String
+  status           EnrollmentStatus @default(APPROVED)
+  paymentReference String?
+  enrolledAt       DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
   
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
 }

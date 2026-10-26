@@ -19,7 +19,7 @@ export default async function MenteeDashboard() {
 
   if (!dashboardData) return null;
 
-  const { user = {}, jumpBackCourse, recommendations = [], totalCompletedLessons = 0, streak = 0 } = dashboardData;
+  const { user = {}, jumpBackCourse, recommendations = [], totalCompletedLessons = 0, streak = 0, pendingEnrollmentsCount = 0 } = dashboardData;
   
   // Use first 3 meetings
   const upcomingMeetings = meetings.slice(0, 3);
@@ -55,6 +55,26 @@ export default async function MenteeDashboard() {
         
         {/* Left Column: Progress & Courses */}
         <div className="lg:col-span-2 space-y-8">
+            {pendingEnrollmentsCount > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-amber-500/15 text-amber-600 flex items-center justify-center shrink-0">
+                            <i className="fas fa-hourglass-half"></i>
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-amber-950">
+                                {pendingEnrollmentsCount} Course Request{pendingEnrollmentsCount === 1 ? "" : "s"} Pending Approval
+                            </p>
+                            <p className="text-xs text-amber-800">
+                                Your instructor is reviewing your payment reference. Access will unlock automatically once approved.
+                            </p>
+                        </div>
+                    </div>
+                    <Link href="/mentee/my-courses" className="text-xs font-bold text-amber-900 bg-white border border-amber-200 px-3 py-2 rounded-lg hover:bg-amber-100 transition-colors shrink-0">
+                        View Status
+                    </Link>
+                </div>
+            )}
             
             {/* Active Course */}
             <div>

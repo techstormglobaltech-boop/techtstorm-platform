@@ -66,7 +66,7 @@ export class MeetingsService {
     return this.prisma.meeting.findMany({
       where: {
         OR: [
-          { course: { enrollments: { some: { userId } } }, menteeId: null },
+          { course: { enrollments: { some: { userId, status: 'APPROVED' } } }, menteeId: null },
           { menteeId: userId }
         ],
         startTime: { gte: new Date(new Date().getTime() - 60 * 60 * 1000) }
@@ -85,6 +85,16 @@ export class MeetingsService {
       select: { instructorId: true }
     });
     if (!course) throw new NotFoundException('Course not found');
+
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: data.courseId },
+      },
+    });
+
+    if (!enrollment || enrollment.status !== 'APPROVED') {
+      throw new ForbiddenException('You must have an approved enrollment in this course to request a session.');
+    }
 
     return this.prisma.meeting.create({
       data: {
